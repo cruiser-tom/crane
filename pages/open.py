@@ -2,6 +2,11 @@ import streamlit as st
 import time
 from supabase import create_client, Client
 import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted
+
+
+st.set_page_config(page_title="Frame KMS | Open Query", layout="centered")
+
 
 # --- Initialize Gemini ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -14,9 +19,11 @@ def init_connection():
 
 supabase = init_connection()
 
-# Safety Check: If a student tries to go directly to this URL without app.py
+# Safety Check: Initialization
 if 'start_time' not in st.session_state:
     st.session_state.start_time = time.time()
+if 'iteration_count' not in st.session_state:
+    st.session_state.iteration_count = 0
     
     
 
@@ -61,7 +68,9 @@ Format outputs exactly as the user requests (e.g., short summary, bullet points,
 If a user asks for data outside of this context, politely inform them that the data is not available in the current Knowledge Base.
 """
 
-from google.api_core.exceptions import ResourceExhausted
+st.title("Frame Corporate Intelligence")
+st.divider()
+
 
 def open_interface():
     st.subheader("Knowledge Management System")
@@ -77,7 +86,8 @@ def open_interface():
             full_prompt = f"{SYSTEM_CONTEXT}\n\nUser Query: {user_query}"
             try:
                 response = model.generate_content(full_prompt)
-                st.info(response.text)
+                st.success("Query Successful")
+                st.markdown(response.text) # Markdown looks cleaner for AI responses
             except ResourceExhausted:
                 st.warning("⚠️ System is experiencing high traffic. Please wait 15 seconds and try again.")
             except Exception as e:
@@ -87,21 +97,27 @@ def open_interface():
 
 open_interface()
 
-if st.button("I found the answer!"):
+st.write("---")
+
+# --- LOGGING ---
+if st.button("✅ I found the answer!"):
     st.session_state.task_complete = True
     end_time = time.time()
     total_time = round(end_time - st.session_state.start_time, 2)
     
     data_to_insert = {
         "Participant_ID": int(time.time()), 
-        "Condition": st.session_state.experiment_group,
+        "Condition": st.session_state.get("experiment_group", "Open"), # Safe fallback
         "Total_Time_Seconds": total_time,
         "Prompt_Iterations": st.session_state.iteration_count
     }
     
     try:
         response = supabase.table("HCI").insert(data_to_insert).execute()
+        st.balloons()
         st.success(f"Task complete! Time: {total_time}s | Iterations: {st.session_state.iteration_count}")
         st.write("Data securely logged. Please proceed to the post-task survey.")
+        time.sleep(2)
+        st.stop() # Locks the page so they can't double-click
     except Exception as e:
         st.error(f"An error occurred while saving data: {e}")
