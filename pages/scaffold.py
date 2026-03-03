@@ -14,7 +14,7 @@ def init_connection():
 supabase = init_connection()
 
 # Safety Check: If a student tries to go directly to this URL without app.py
-if st.session_state.start_time is None:
+if 'start_time' not in st.session_state:
     st.session_state.start_time = time.time()
 
 
