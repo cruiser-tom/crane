@@ -7,27 +7,7 @@ import google.generativeai as genai
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-def set_branding():
-    st.set_page_config(page_title="Enterprise KMS v2.4", layout="wide")
-    
-    # Custom CSS for a clean, "Enterprise" feel
-    st.markdown("""
-        <style>
-            .main { background-color: #f8f9fa; }
-            .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
-            .stChatInputContainer { padding-bottom: 20px; }
-            header { visibility: hidden; } /* Hides the 'Made with Streamlit' footer */
-        </style>
-    """, unsafe_content_html=True)
 
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        st.image("https://cdn-icons-png.flaticon.com/512/2800/2800168.png", width=80) # A generic "Data" icon
-    with col2:
-        st.title("Nexus Corporate Intelligence")
-        st.caption("Internal Knowledge Management System | Authorized Access Only")
-        
-        
 @st.cache_resource
 def init_connection():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
@@ -93,11 +73,7 @@ def open_interface():
         st.session_state.iteration_count += 1
         st.write(f"**You asked:** {user_query}")
         
-  
-        with st.spinner("Querying Secure Database..."):
-
-  
-        
+        with st.spinner("Searching database..."):
             full_prompt = f"{SYSTEM_CONTEXT}\n\nUser Query: {user_query}"
             try:
                 response = model.generate_content(full_prompt)
@@ -106,31 +82,10 @@ def open_interface():
                 st.warning("⚠️ System is experiencing high traffic. Please wait 15 seconds and try again.")
             except Exception as e:
                 st.error("An unexpected system error occurred. Please try again.")
-                 
-                  with st.chat_message("assistant", avatar="🤖"):
-        st.markdown(f"### System Result:\n{response.text}")
-        st.caption(f"Confidence Score: 98.4% | Data Source: Fiscal_2025_Archive")
-        
+                
 
-with st.sidebar:
-    st.header("📋 Your Assigned Task")
-    st.info("""
-    **Objective:** Identify the main cause of the Q2 revenue drop and find which department managed to stay under budget.
-    
-    **Instructions:**
-    1. Use the interface to query the database.
-    2. Once you have both answers, click the button at the bottom.
-    """)
-    
-    # Progress bar to show how many steps they've taken
-    st.write("---")
-    st.write(f"Search Iterations: {st.session_state.iteration_count}")
-    progress = min(st.session_state.iteration_count * 20, 100) # Progresses every click
-    st.progress(progress)
-    
+
 open_interface()
-
-
 
 if st.button("I found the answer!"):
     st.session_state.task_complete = True
@@ -148,11 +103,5 @@ if st.button("I found the answer!"):
         response = supabase.table("HCI").insert(data_to_insert).execute()
         st.success(f"Task complete! Time: {total_time}s | Iterations: {st.session_state.iteration_count}")
         st.write("Data securely logged. Please proceed to the post-task survey.")
-        st.balloons()
-    	st.toast("Data securely logged to the research server!", icon='💾')
-    
-    	# Lock the interface so they can't change their answer
-   		st.success("Thank you! Your response has been recorded. You may now close this tab.")
-   		st.stop() # Stops the script so they can't keep clicking
-    	except Exception as e:
+    except Exception as e:
         st.error(f"An error occurred while saving data: {e}")
