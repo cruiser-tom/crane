@@ -34,9 +34,6 @@ st.info("""
 # The distinct breakout box for the task
 st.warning("🎯 **YOUR TASK:** Use the AI assistant below to find the TWO products with the highest confirmed probability of fake/bot-generated reviews.")
 
-st.write("Please click the button below to be assigned to your system interface and begin the task.")
-
-st.write("---")
 
 # Center the button to match the GenAI aesthetic
 col1, col2, col3 = st.columns([1, 2, 1])
