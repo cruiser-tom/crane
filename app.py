@@ -17,8 +17,8 @@ if 'experiment_group' not in st.session_state:
 # This creates the giant GenAI-style header perfectly centered on the screen
 st.markdown(
     """
-    <div style="text-align: center; padding-top: 6vh; padding-bottom: 2vh;">
-        <h1 style="font-size: 3.5rem; font-weight: 600; margin-bottom: 0px;">Crane <span style="color: #0068c9;">Research</span></h1>
+    <div style="text-align: center; padding-top: 4vh; padding-bottom: 2vh;">
+        <h1 style="font-size: 3.5rem; font-weight: 600; margin-bottom: 0px;">Crane <span style="color: #0068c9;">AI</span></h1>
         <p style="font-size: 1.2rem; color: #888;">Human-Computer Interaction Study: GenAI Trust Models</p>
     </div>
     """, 
