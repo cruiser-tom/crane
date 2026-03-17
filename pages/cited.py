@@ -4,7 +4,7 @@ from supabase import create_client
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 
-st.set_page_config(page_title="Crane AI | Cited Data", layout="centered")
+st.set_page_config(page_title="Crane AI", layout="centered")
 # --- CUSTOM CSS FOR RIGHT-ALIGNED USER CHAT ---
 st.markdown(
     """
@@ -40,6 +40,8 @@ if 'start_time' not in st.session_state:
 if 'iteration_count' not in st.session_state:
     st.session_state.iteration_count = 0
 
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
 
 
 # Updated Instruction: Using a strict template to force the formatting
@@ -47,11 +49,12 @@ SYSTEM_CONTEXT = """
 You are an advanced AI designed to analyze e-commerce product reviews.
 
 CRITICAL FORMATTING RULES - YOU MUST OBEY THESE:
-1. Your response MUST be split into two parts using "|||" as the delimiter.
-2. Part 1 (Before |||) is your conversational answer.
-3. Part 2 (After |||) is the data verification.
-4. The data verification MUST start with a 3-column table: | Product Name | Total Reviews | Rating |
-6. Below the table, you MUST list the AI Analysis that you should do about the reviews that you analyse as separate bullet points.
+1. IF the user asks to analyze products, check reviews, or find bot activity: Your response MUST be split into two parts using "|||" as the delimiter.
+   - Part 1 (Before |||) is your friendly conversational answer.
+   - Part 2 (After |||) MUST be a 3-column table: | Product Name | Total Reviews | Rating | 
+   - Part 3 is your AI analysis in bullet points.
+2. IF the user is just greeting you (e.g., "Hi", "Thanks", "How are you?"): DO NOT use the "|||" delimiter or the table. Just reply conversationally and naturally as Martha.
+
 
 EXAMPLE OF THE EXACT REQUIRED FORMAT:
 I have analyzed the catalog and found the products you requested.
@@ -93,36 +96,68 @@ def cited_interface():
             unsafe_allow_html=True
         )
 
-    # --- THE ACTIVE STATE -#
+
+
+# --- DISPLAY PAST CHAT HISTORY ---
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            if message["role"] == "user":
+                st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
+            st.markdown(message["content"])
+
+    # --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
+        
+        # 1. Show and save user message
         with st.chat_message("user"):
-            # You must add this anchor so the CSS knows what to push to the right!
             st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
             st.write(user_query)
+        st.session_state.messages.append({"role": "user", "content": user_query})
             
-        with st.spinner("Extracting verifiable data..."):
-            full_prompt = f"{SYSTEM_CONTEXT}\n\nUser Query: {user_query}"
+        # 2. Prefix Filter for the Spinner
+        words_in_query = user_query.lower().split()
+        task_prefixes = ["prod", "review", "bot", "fake", "susp", "scan", "analy", "data", "list", "activ"]
+        is_task_query = any(word.startswith(prefix) for word in words_in_query for prefix in task_prefixes)
+        
+        # 3. Generate Response
+        # We only show the "Extracting..." spinner for actual tasks
+        if is_task_query:
+            spinner_context = st.spinner("Extracting verifiable data...")
+        else:
+            # A completely invisible block if it is just a greeting
+            spinner_context = st.container() 
+            
+        with spinner_context:
+            chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
+            full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
+            
             try:
                 response = model.generate_content(full_prompt)
                 
-                with st.chat_message("assistant", avatar="🤖"):
+                with st.chat_message("assistant", avatar="🧑‍💻"):
                     if "|||" in response.text:
                         chat_text, raw_data = response.text.split("|||", 1)
                         st.write(chat_text.strip())
                         
                         with st.expander("📊 View System Data Verification", expanded=True):
-                            st.caption("Raw extract from Nexus Product Database:")
+                            st.caption("Raw extract from Crane AI Database:")
                             st.markdown(raw_data.strip())
+                            
+                        # Save the split response to memory
+                        st.session_state.messages.append({"role": "assistant", "content": chat_text.strip() + "\n\n**Raw Data Verification:**\n" + raw_data.strip()})
                     else:
                         st.write(response.text)
+                        # Save normal response to memory
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
                         
             except ResourceExhausted:
-                st.warning("⚠️ High traffic. Wait 15 seconds.")
+                st.warning("⚠️ High traffic. Please wait 15 seconds.")
             except Exception as e:
                 st.error("System Error.")
+                
 
-
+     
 
 cited_interface()
 st.write("---")
