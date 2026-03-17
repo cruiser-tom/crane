@@ -4,7 +4,7 @@ from supabase import create_client
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 
-st.set_page_config(page_title="Crane AI Explainable AI", layout="centered")
+st.set_page_config(page_title="Crane AI", layout="centered")
 # --- CUSTOM CSS FOR RIGHT-ALIGNED USER CHAT ---
 st.markdown(
     """
@@ -40,7 +40,8 @@ if 'start_time' not in st.session_state:
 if 'iteration_count' not in st.session_state:
     st.session_state.iteration_count = 0
 
-
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
 
 
 SYSTEM_CONTEXT = """
@@ -87,49 +88,58 @@ def scaffolded_interface():
         elif clicked_suggestion_2:
             user_query = "List products with 100% bot activity"
 
-
+# --- DISPLAY PAST CHAT HISTORY ---
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            if message["role"] == "user":
+                st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
+            st.markdown(message["content"])
 
     # --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
+        
+        # 1. Show and save user message
         with st.chat_message("user"):
-            # The anchor hack to push this message to the right
             st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
             st.write(user_query)
+        st.session_state.messages.append({"role": "user", "content": user_query})
             
-        # Trust UI Element: The Labor Illusion (Progress Bar + Status)
-        with st.status("Crane AI is analyzing the dataset...", expanded=True) as status:
-            # Create an empty progress bar
-            progress_bar = st.progress(0)
+        # 2. Prefix Filter for Progress Bar
+        words_in_query = user_query.lower().split()
+        task_prefixes = ["prod", "review", "bot", "fake", "susp", "scan", "analy", "data", "list", "activ"]
+        is_task_query = any(word.startswith(prefix) for word in words_in_query for prefix in task_prefixes)
+        
+        if is_task_query:
+            with st.status("Crane AI is analyzing the dataset...", expanded=True) as status:
+                progress_bar = st.progress(0)
+                st.write("🔍 Extracting product metadata...")
+                progress_bar.progress(30)
+                time.sleep(0.6) 
+                st.write("📊 Running linguistic anomaly detection models...")
+                progress_bar.progress(70)
+                time.sleep(0.7)
+                st.write("✅ Compiling final trust and safety report...")
+                progress_bar.progress(100)
+                status.update(label="Analysis Complete", state="complete", expanded=False)
+                
+        # 3. Generate and save AI response
+        with st.chat_message("assistant", avatar="🤖"):
+            chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
+            full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
             
-            st.write("🔍 Extracting product metadata...")
-            progress_bar.progress(25) # Fills to 25%
-            time.sleep(0.6) 
-            
-            st.write("📊 Running linguistic anomaly detection models...")
-            progress_bar.progress(60) # Fills to 60%
-            time.sleep(0.7)
-            
-            st.write("🛡️ Cross-referencing account age heuristics...")
-            progress_bar.progress(85) # Fills to 85%
-            time.sleep(0.5)
-            
-            st.write("✅ Compiling final trust and safety report...")
-            progress_bar.progress(100) # Fills to 100%
-            
-            status.update(label="Analysis Complete", state="complete", expanded=False)
-            
-            
-        full_prompt = f"{SYSTEM_CONTEXT}\n\nUser Query: {user_query}"
-        try:
-            response = model.generate_content(full_prompt)
-            with st.chat_message("assistant", avatar="🤖"):
+            try:
+                response = model.generate_content(full_prompt)
                 st.write(response.text)
-                st.caption("🔒 Verified by Nexus Trust & Safety Engine | **Confidence Score: 96.8%**")
-        except ResourceExhausted:
-            st.warning("⚠️ High traffic. Wait 15 seconds.")
-        except Exception as e:
-            st.error("System Error.")
+                st.caption("🔒 Verified by Crane AI Trust & Safety Engine | **Confidence Score: 96.8%**")
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            except ResourceExhausted:
+                st.warning("⚠️ High traffic. Please wait 15 seconds.")
+            except Exception as e:
+                st.error("System Error.")
+                
+             
+   
             
 
 scaffolded_interface()
