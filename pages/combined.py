@@ -83,9 +83,9 @@ def combined_interface():
     if not user_query and st.session_state.iteration_count == 0:
         st.markdown(
             """
-            <div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
-                <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Martha</h1>
-                <p style="font-size: 1.2rem; color: #888;">Your Verified Data Coworker 👋</p>
+            <div style="text-align: center; padding-top: 10vh; padding-bottom: 6vh;">
+                <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Crane <span style="color: #0068c9;">AI</span></h1>
+                <p style="font-size: 1.2rem; color: #888;">Hi! I am Martha, your Data Team Coworker 👋</p>
             </div>
             """, 
             unsafe_allow_html=True
