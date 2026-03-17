@@ -4,7 +4,7 @@ from supabase import create_client
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 
-st.set_page_config(page_title="Crane AI | Omnimodal System", layout="centered")
+st.set_page_config(page_title="Crane AI", layout="centered")
 
 # --- CUSTOM CSS FOR RIGHT-ALIGNED USER CHAT ---
 st.markdown(
@@ -57,12 +57,12 @@ CRITICAL FORMATTING RULES - YOU MUST OBEY THESE:
 EXAMPLE OF THE EXACT REQUIRED FORMAT:
 Hey there! I have analyzed the catalog and found the products you requested.
 |||
-### Raw Data Table
+### Data Table
 | Product Name | Total Reviews | Rating |
 |---|---|---|
 | Example Product | 1,000 | 4.0/5 |
 
-### System Verification Analysis
+### AI Analysis
 * **Example Product:** WARNING. Suspicious activity detected.
 
 --- PRODUCT REVIEW DATASET ---
@@ -138,7 +138,7 @@ def combined_interface():
                     
                     # Pop open the official data table below it
                     with st.expander("📊 View System Data Verification", expanded=True):
-                        st.caption("Raw extract from Nexus Product Database:")
+                        st.caption("Raw extract from Crane AI Product Database:")
                         st.markdown(raw_data.strip())
                 else:
                     st.write_stream(stream_typing(response.text))
