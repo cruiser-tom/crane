@@ -81,7 +81,7 @@ Hey there! I have analyzed the catalog and found the products you requested.
 """
 
 def combined_interface():
-	for message in st.session_state.messages:
+    for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "user":
                 st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
