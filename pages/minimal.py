@@ -17,7 +17,7 @@ st.markdown(
 
     /* 2. Set the exact width (700px) for the main content */
     .block-container {
-        max-width: 700px !important;
+        max-width: 750px !important;
         padding-top: 3rem !important;
         padding-bottom: 8rem !important; 
     }
