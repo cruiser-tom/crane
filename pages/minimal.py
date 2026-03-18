@@ -22,61 +22,52 @@ st.markdown(
         max-width: 700px !important; 
     }
 
-    /* 3. Hide all avatars and remove their spacing */
-    [data-testid="stChatMessageAvatar"] {
+    /* 3. ABSOLUTE AVATAR DESTRUCTION */
+    /* Targets the very first container in the chat row, regardless of what Streamlit names it */
+    div[data-testid="stChatMessage"] > div:first-child:not([data-testid="stChatMessageContent"]) {
         display: none !important;
-    }
-    [data-testid="stChatMessage"] {
-        gap: 0 !important;
+        width: 0px !important;
+        margin: 0px !important;
+        padding: 0px !important;
+        opacity: 0 !important;
     }
 
-    /* 4. USER MESSAGE - Forced full-width container, aligned right */
+    /* 4. USER MESSAGE - Right alignment and Shrink-Wrap */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important; /* Pushes bubble to the right */
-        width: 100% !important; /* CRITICAL: Gives it the full screen to push across */
-        background: transparent !important;
+        flex-direction: row-reverse !important; /* Flips the row */
+        background-color: transparent !important;
     }
-
-    /* The User Bubble Shape */
+    
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
         background-color: #2b2b2b !important;
         color: #ffffff !important;
-        padding: 12px 18px !important;
         border-radius: 20px 20px 5px 20px !important;
-        width: fit-content !important;
-        max-width: 80% !important;
+        padding: 12px 18px !important;
         
-        /* CRITICAL: Stops the text from getting vertically crushed */
-        display: block !important; 
-        height: auto !important; 
-        min-height: min-content !important;
-        overflow: visible !important;
+        /* The magic bullets to stop stretching and pin it right */
+        width: max-content !important; 
+        max-width: 80% !important;
+        flex: 0 1 auto !important; 
+        margin-left: auto !important; 
     }
 
-    /* User Text Spacing */
-    div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
+    /* Stops the text from getting vertically chopped off */
+    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stMarkdownContainer"] > p {
         margin: 0 !important;
-        padding: 0 !important;
         line-height: 1.5 !important;
     }
     
-    /* 5. AI MESSAGE - Clean and transparent */
+    /* 5. AI MESSAGE - Clean and flush left */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
-        background: transparent !important;
-        justify-content: flex-start !important;
-        width: 100% !important;
+        background-color: transparent !important;
     }
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
         padding: 10px 0px !important; 
-        background: transparent !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
