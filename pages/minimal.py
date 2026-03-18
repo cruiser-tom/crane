@@ -15,40 +15,40 @@ st.markdown(
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* 2. Set the exact width (700px) for the main content */
+    /* 2. Set the exact width for the main content */
     .block-container {
-        max-width: 800px !important;
+        max-width: 700px !important; /* Matched to 700px */
         padding-top: 3rem !important;
-        padding-bottom: 3rem !important; 
+        padding-bottom: 8rem !important; /* Gives room so the chat input doesn't overlap text */
     }
 
     /* 3. Match the chat input box width perfectly to the content */
     [data-testid="stBottomBlock"] > div {
-        max-width: 700px !important;
+        max-width: 700px !important; /* Matched to 700px */
     }
 
     /* 4. User Message Styling - Dark gray bubble */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
         flex-direction: row-reverse;
         background-color: transparent;
-        gap: 0 !important; /* Removes the space left by the avatar */
+        gap: 0 !important; 
     }
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        align-items: flex-end;
         background-color: #2b2b2b;
-        padding: 10px 10px;
+        padding: 10px 15px;
         border-radius: 20px 20px 5px 20px;
         color: #ffffff;
         max-width: 80%;
+        width: fit-content !important; /* <--- THIS FIXES THE STRETCHING BAR */
+        flex-grow: 0 !important;       /* <--- THIS STOPS THE FLEXBOX EXPANSION */
     }
     div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
-        text-align: right;
         margin-bottom: 0;
     }
     
     /* 5. AI Message Styling - Clean and transparent */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
-        gap: 0 !important; /* Removes the space left by the avatar */
+        gap: 0 !important; 
     }
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
         background-color: transparent;
