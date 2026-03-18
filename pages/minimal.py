@@ -15,7 +15,7 @@ st.markdown(
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* 2. Set the exact Gemini width (approx 850px) for the main content */
+    /* 2. Set the exact width (700px) for the main content */
     .block-container {
         max-width: 700px !important;
         padding-top: 3rem !important;
@@ -24,20 +24,21 @@ st.markdown(
 
     /* 3. Match the chat input box width perfectly to the content */
     [data-testid="stBottomBlock"] > div {
-        max-width: 850px !important;
+        max-width: 700px !important;
     }
 
     /* 4. User Message Styling - Dark gray bubble */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
         flex-direction: row-reverse;
         background-color: transparent;
+        gap: 0 !important; /* Removes the space left by the avatar */
     }
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
         align-items: flex-end;
-        
+        background-color: #2b2b2b;
         padding: 15px 20px;
         border-radius: 20px 20px 5px 20px;
-        
+        color: #ffffff;
         max-width: 80%;
     }
     div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
@@ -46,13 +47,23 @@ st.markdown(
     }
     
     /* 5. AI Message Styling - Clean and transparent */
+    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
+        gap: 0 !important; /* Removes the space left by the avatar */
+    }
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
         background-color: transparent;
         padding: 10px 15px;
-        /* 6. Hide the chat avatars to save mobile screen space */
-    [data-testid="stChatMessageAvatar"] {
-        display: none !important;
     }
+
+    /* 6. The "Nuclear Option" to force-hide all avatars */
+    [data-testid="stChatMessageAvatar"],
+    .stChatMessageAvatar,
+    div[data-testid="stChatMessage"] > div:first-child:not([data-testid="stChatMessageContent"]) {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     </style>
     """,
