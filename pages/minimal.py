@@ -34,34 +34,33 @@ st.markdown(
         padding: 0 !important;
     }
 
-    /* 4. USER MESSAGE - Pushed to the right */
+    /* 4. USER MESSAGE - Shrink-wrapped and pushed right */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
+        display: flex !important;
+        flex-direction: column !important; /* Turns the invisible container into a vertical stack */
+        align-items: flex-end !important;  /* Forces everything in the stack to shrink and hug the right side */
         background-color: transparent !important;
     }
+    
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        /* The magic trick to push it to the right edge */
-        margin-left: auto !important;
-        margin-right: 0 !important;
-        
-        /* Bubble styling and safe padding */
         background-color: #2b2b2b !important;
-        padding: 12px 20px !important;
+        color: #ffffff !important;
+        padding: 12px 18px !important;
         border-radius: 20px 20px 5px 20px !important;
         max-width: 80% !important;
         width: fit-content !important;
     }
+    
     div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
         color: #ffffff !important;
         margin: 0 !important;
-        text-align: left !important; /* Keeps the text readable inside the bubble */
     }
     
-    /* 5. AI MESSAGE - Pushed to the left */
+    /* 5. AI MESSAGE - Clean and transparent */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
         background-color: transparent !important;
     }
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        margin-right: auto !important;
         padding: 10px 0px !important; /* Flush left */
     }
     </style>
