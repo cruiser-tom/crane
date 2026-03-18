@@ -9,63 +9,60 @@ st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_sta
 st.markdown(
     """
     <style>
-    /* 1. Hide Streamlit's default header, menu, and footer */
+    /* 1. Hide default Streamlit elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* 2. Set the exact width for the main content */
+    /* 2. Lock the main width */
     .block-container {
         max-width: 700px !important; 
         padding-top: 3rem !important;
         padding-bottom: 8rem !important; 
     }
-
-    /* 3. Match the chat input box width perfectly to the content */
     [data-testid="stBottomBlock"] > div {
         max-width: 700px !important; 
     }
 
-    /* 4. User Message Styling - Dark gray bubble on the RIGHT */
-    div[data-testid="stChatMessage"]:has(.user-anchor) {
-        display: flex !important;
-        flex-direction: row-reverse !important;
-        justify-content: flex-start !important; /* Pushes the bubble to the right edge */
-        background-color: transparent !important;
-    }
-    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        background-color: #2b2b2b !important;
-        color: #ffffff !important;
-        padding: 12px 18px !important; /* Adds safe space at the bottom so text isn't cut off */
-        border-radius: 20px 20px 5px 20px !important;
-        max-width: 80% !important;
-        width: fit-content !important;
-        flex: none !important; /* Stops the background from stretching */
-    }
-    div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
-        margin: 0 !important; /* Removes hidden margins causing clipping */
-        line-height: 1.5 !important;
-    }
-    
-    /* 5. AI Message Styling - Clean and transparent */
-    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
-        display: flex !important;
-        justify-content: flex-start !important;
-    }
-    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        background-color: transparent !important;
-        padding: 10px 0px !important; /* Flush with the left edge */
-    }
-
-    /* 6. Force-hide all avatars */
+    /* 3. Force-hide all avatars completely */
     [data-testid="stChatMessageAvatar"],
-    .stChatMessageAvatar,
     div[data-testid="stChatMessage"] > div:first-child:not([data-testid="stChatMessageContent"]) {
         display: none !important;
         width: 0 !important;
         height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
+    }
+
+    /* 4. USER MESSAGE - Pushed to the right */
+    div[data-testid="stChatMessage"]:has(.user-anchor) {
+        background-color: transparent !important;
+    }
+    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
+        /* The magic trick to push it to the right edge */
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        
+        /* Bubble styling and safe padding */
+        background-color: #2b2b2b !important;
+        padding: 12px 20px !important;
+        border-radius: 20px 20px 5px 20px !important;
+        max-width: 80% !important;
+        width: fit-content !important;
+    }
+    div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
+        color: #ffffff !important;
+        margin: 0 !important;
+        text-align: left !important; /* Keeps the text readable inside the bubble */
+    }
+    
+    /* 5. AI MESSAGE - Pushed to the left */
+    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
+        background-color: transparent !important;
+    }
+    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
+        margin-right: auto !important;
+        padding: 10px 0px !important; /* Flush left */
     }
     </style>
     """,
