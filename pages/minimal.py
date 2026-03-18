@@ -17,7 +17,7 @@ st.markdown(
 
     /* 2. Set the exact Gemini width (approx 850px) for the main content */
     .block-container {
-        max-width: 850px !important;
+        max-width: 700px !important;
         padding-top: 3rem !important;
         padding-bottom: 8rem !important; 
     }
