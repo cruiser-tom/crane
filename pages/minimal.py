@@ -9,10 +9,8 @@ st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_sta
 st.markdown(
     """
     <style>
-    /* 1. Standard Hide */
+    /* 1. Basic Hide & Width */
     #MainMenu, footer, header {visibility: hidden;}
-
-    /* 2. Main Width */
     .block-container {
         max-width: 700px !important; 
         padding-top: 3rem !important;
@@ -22,56 +20,38 @@ st.markdown(
         max-width: 700px !important; 
     }
 
-    /* 3. The Avatar Destroyer (Updated) */
+    /* 2. Remove the empty space Streamlit reserves for the avatar */
     [data-testid="stChatMessageAvatar"] {
         display: none !important;
     }
-
-    /* 4. USER MESSAGE - The Grid Force Method */
-    div[data-testid="stChatMessage"]:has(.user-anchor) {
-        display: grid !important;
-        justify-items: end !important; /* Pushes the grid content to the right */
-        background-color: transparent !important;
-        width: 100% !important;
+    [data-testid="stChatMessage"] {
+        gap: 0 !important;
     }
 
+    /* 3. USER BUBBLE - Pure Right Alignment */
+    div[data-testid="stChatMessage"]:has(.user-anchor) {
+        display: flex !important;
+        justify-content: flex-end !important;
+        background-color: transparent !important;
+    }
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
         background-color: #2b2b2b !important;
         color: #ffffff !important;
-        padding: 12px 20px !important;
+        padding: 12px 18px !important;
         border-radius: 20px 20px 5px 20px !important;
-        
-        /* Forces the bubble to shrink-wrap the text */
-        width: fit-content !important;
-        min-width: 0 !important;
-        
-        /* Stops the vertical clipping */
-        display: block !important;
-        line-height: 1.6 !important;
+        width: fit-content !important; /* Shrinks to text size */
+        flex: none !important;
     }
 
-    /* 5. AI MESSAGE - The Grid Force Method */
-    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
-        display: grid !important;
-        justify-items: start !important; /* Pushes the AI content to the left */
-        background-color: transparent !important;
-    }
-
+    /* 4. AI MESSAGE - Clean Left Alignment */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
         background-color: transparent !important;
         padding: 10px 0px !important;
-    }
-
-    /* 6. Text-specific safety to prevent the bottom cut-off */
-    div[data-testid="stChatMessageContent"] p {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
 
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -111,7 +91,7 @@ def minimalist_interface():
     
     # --- DISPLAY PAST CHAT HISTORY ---
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
+        with st.chat_message(message["role"], avatar=" "):
             if message["role"] == "user":
                 st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
             st.markdown(message["content"])
@@ -166,7 +146,7 @@ def minimalist_interface():
                 response = model.generate_content(full_prompt)
                 
                 # Standard default Streamlit icon, no typing delay, no tables
-                with st.chat_message("assistant"):
+                with st.chat_message("assistant", avatar=" "):
                     st.write(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
                     
