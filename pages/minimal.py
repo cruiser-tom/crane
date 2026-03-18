@@ -9,10 +9,10 @@ st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_sta
 st.markdown(
     """
     <style>
-    /* 1. Hide default Streamlit elements */
+    /* 1. Standard Hide */
     #MainMenu, footer, header {visibility: hidden;}
 
-    /* 2. Lock the main width */
+    /* 2. Main Width */
     .block-container {
         max-width: 700px !important; 
         padding-top: 3rem !important;
@@ -22,52 +22,58 @@ st.markdown(
         max-width: 700px !important; 
     }
 
-    /* 3. ABSOLUTE AVATAR DESTRUCTION */
-    /* Targets the very first container in the chat row, regardless of what Streamlit names it */
-    div[data-testid="stChatMessage"] > div:first-child:not([data-testid="stChatMessageContent"]) {
+    /* 3. The Avatar Destroyer (Updated) */
+    [data-testid="stChatMessageAvatar"] {
         display: none !important;
-        width: 0px !important;
-        margin: 0px !important;
-        padding: 0px !important;
-        opacity: 0 !important;
     }
 
-    /* 4. USER MESSAGE - Right alignment and Shrink-Wrap */
+    /* 4. USER MESSAGE - The Grid Force Method */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
-        flex-direction: row-reverse !important; /* Flips the row */
+        display: grid !important;
+        justify-items: end !important; /* Pushes the grid content to the right */
         background-color: transparent !important;
+        width: 100% !important;
     }
-    
+
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
         background-color: #2b2b2b !important;
         color: #ffffff !important;
+        padding: 12px 20px !important;
         border-radius: 20px 20px 5px 20px !important;
-        padding: 12px 18px !important;
         
-        /* The magic bullets to stop stretching and pin it right */
-        width: max-content !important; 
-        max-width: 80% !important;
-        flex: 0 1 auto !important; 
-        margin-left: auto !important; 
+        /* Forces the bubble to shrink-wrap the text */
+        width: fit-content !important;
+        min-width: 0 !important;
+        
+        /* Stops the vertical clipping */
+        display: block !important;
+        line-height: 1.6 !important;
     }
 
-    /* Stops the text from getting vertically chopped off */
-    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stMarkdownContainer"] > p {
-        margin: 0 !important;
-        line-height: 1.5 !important;
-    }
-    
-    /* 5. AI MESSAGE - Clean and flush left */
+    /* 5. AI MESSAGE - The Grid Force Method */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
+        display: grid !important;
+        justify-items: start !important; /* Pushes the AI content to the left */
         background-color: transparent !important;
     }
+
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        padding: 10px 0px !important; 
+        background-color: transparent !important;
+        padding: 10px 0px !important;
+    }
+
+    /* 6. Text-specific safety to prevent the bottom cut-off */
+    div[data-testid="stChatMessageContent"] p {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
+
+
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
