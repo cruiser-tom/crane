@@ -10,9 +10,7 @@ st.markdown(
     """
     <style>
     /* 1. Hide default Streamlit elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    #MainMenu, footer, header {visibility: hidden;}
 
     /* 2. Lock the main width */
     .block-container {
@@ -24,50 +22,39 @@ st.markdown(
         max-width: 700px !important; 
     }
 
-    /* 3. Force-hide all avatars completely */
-    [data-testid="stChatMessageAvatar"],
-    div[data-testid="stChatMessage"] > div:first-child:not([data-testid="stChatMessageContent"]) {
+    /* 3. Hide avatars simply */
+    [data-testid="stChatMessageAvatar"] {
         display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
     }
 
-    /* 4. USER MESSAGE - Shrink-wrapped and pushed right */
+    /* 4. USER MESSAGE - Stripped down and simple */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
-        display: flex !important;
-        flex-direction: column !important; /* Turns the invisible container into a vertical stack */
-        align-items: flex-end !important;  /* Forces everything in the stack to shrink and hug the right side */
-        background-color: transparent !important;
+        background: transparent !important;
+        justify-content: flex-end !important; /* Pushes everything right naturally */
     }
-    
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
         background-color: #2b2b2b !important;
         color: #ffffff !important;
-        padding: 12px 18px !important;
+        padding: 15px 20px !important;
         border-radius: 20px 20px 5px 20px !important;
-        max-width: 80% !important;
-        width: fit-content !important;
+        flex: 0 1 auto !important; /* Shrink-wraps without crushing */
+        min-width: 60px !important; /* Stops small words from cutting off */
     }
-    
     div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
-        color: #ffffff !important;
-        margin: 0 !important;
+        margin-bottom: 0 !important;
     }
     
-    /* 5. AI MESSAGE - Clean and transparent */
+    /* 5. AI MESSAGE - Basic */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
-        background-color: transparent !important;
+        background: transparent !important;
     }
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        padding: 10px 0px !important; /* Flush left */
+        padding: 10px 0px !important; 
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
