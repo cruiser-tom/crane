@@ -4,21 +4,31 @@ from supabase import create_client
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 
-st.set_page_config(page_title="Crane AI", layout="centered")
+st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
 
-# --- CUSTOM CSS FOR RIGHT-ALIGNED USER CHAT ---
+# --- DEVELOPMENT BYPASS (Remove or comment out before launching study) ---
+if 'participant_id' not in st.session_state:
+    st.session_state.participant_id = int(time.time())
+if 'experiment_group' not in st.session_state:
+    st.session_state.experiment_group = "Combined"
+
+# --- CUSTOM CSS ---
 st.markdown(
     """
     <style>
-    div[data-testid="stChatMessage"]:has(.user-anchor) {
-        flex-direction: row-reverse;
+    /* Hide default Streamlit elements */
+    #MainMenu, footer, header {visibility: hidden;}
+
+    /* Lock the main width to 700px and center it */
+    .block-container {
+        max-width: 700px !important; 
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important; 
     }
-    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        align-items: flex-end;
+    [data-testid="stBottomBlock"] > div {
+        max-width: 700px !important; 
     }
-    div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
-        text-align: right;
-    }
+    /* NOTE: We are NOT hiding the avatar here, so Martha's icon can shine! */
     </style>
     """,
     unsafe_allow_html=True
@@ -36,17 +46,13 @@ if 'start_time' not in st.session_state:
     st.session_state.start_time = time.time()
 if 'iteration_count' not in st.session_state:
     st.session_state.iteration_count = 0
-
-# Initialize the chat memory
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# The typing simulator for the Persona aspect
 def stream_typing(text):
     for word in text.split(" "):
         yield word + " "
         time.sleep(0.04)
-
 
 SYSTEM_CONTEXT = """
 You are Martha, an advanced AI data coworker designed to analyze e-commerce product reviews.
@@ -80,67 +86,80 @@ Hey there! I have analysed and found the products you requested.
 # Product: Quantum Laptop Stand (3,400 Reviews, 4.8/5 Rating). AI Analysis: Authentic.
 """
 
-
 def combined_interface():
     # --- DISPLAY PAST CHAT HISTORY ---
     for message in st.session_state.messages:
-        # 1. Determine the correct avatar before drawing the message
-        if message["role"] == "assistant":
-            current_avatar = "🧑‍💻"
+        if message["role"] == "user":
+            # 1. Pure HTML for User (Right-aligned, no avatar, clean bubble)
+            st.markdown(f"""
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                        {message["content"]}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
         else:
-            current_avatar = "user" # Uses the default red user block
-            
-        # 2. Draw the message using the correct avatar
-        with st.chat_message(message["role"], avatar=current_avatar):
-            if message["role"] == "user":
-                # Keeps the right-alignment anchor for the user
-                st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
-            st.markdown(message["content"])
-            
+            # 2. Martha's Avatar for AI (Includes logic to correctly split the ||| data on reload)
+            with st.chat_message("assistant", avatar="🧑‍💻"):
+                if "|||" in message["content"]:
+                    chat_text, raw_data = message["content"].split("|||", 1)
+                    st.markdown(chat_text.strip())
+                    with st.expander("📊 View System Data Verification", expanded=False):
+                        st.caption("Raw extract from Crane AI Database:")
+                        st.markdown(raw_data.strip())
+                else:
+                    st.markdown(message["content"])
+
     user_query = st.chat_input("Message Martha...")
     
     # --- THE "EMPTY STATE" ---
-    if not user_query and st.session_state.iteration_count == 0:
-        st.markdown(
-            """
-            <div style="text-align: center; padding-top: 10vh; padding-bottom: 6vh;">
-                <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Crane <span style="color: #0068c9;">AI</span></h1>
-                <p style="font-size: 1.2rem; color: #888;">Hi! I am Martha, your Verified Data Coworker 👋</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-        
-        st.caption("Ask Martha:")
-        col1, col2 = st.columns(2)
-        if col1.button("Hey Martha, can you check for fake reviews?"):
+    empty_placeholder = st.empty()
+    
+    if not user_query and len(st.session_state.messages) == 0:
+        with empty_placeholder.container():
+            st.markdown(
+                """
+                <div style="text-align: center; padding-top: 10vh; padding-bottom: 6vh;">
+                    <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Crane <span style="color: #0068c9;">AI</span></h1>
+                    <p style="font-size: 1.2rem; color: #888;">Hi! I am Martha, your Verified Data Coworker 👋</p>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+            
+            st.caption("Ask Martha:")
+            col1, col2 = st.columns(2)
+            
+            # Anti-glitch shortcut buttons
+            clicked_1 = col1.button("Hey Martha, can you check for fake reviews?", use_container_width=True)
+            clicked_2 = col2.button("Which products have suspicious bot activity?", use_container_width=True)
+            
+        if clicked_1:
             user_query = "Hey Martha, can you check for fake reviews?"
-        if col2.button("Which products have suspicious bot activity?"):
+            empty_placeholder.empty()
+        elif clicked_2:
             user_query = "Which products have suspicious bot activity?"
-
-
+            empty_placeholder.empty()
 
     # --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
         
-        # 1. Show and save the user's message
-        with st.chat_message("user"):
-            st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
-            st.write(user_query)
+        # 1. Show User message instantly
+        st.markdown(f"""
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                    {user_query}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
         st.session_state.messages.append({"role": "user", "content": user_query})
         
-
-        # 1. Break the user's sentence into individual lowercase words
         words_in_query = user_query.lower().split()
-        
-        # 2. Define the starting letters (prefixes) that trigger the analysis
         task_prefixes = ["prod", "review", "bot", "fake", "susp", "scan", "analy", "data", "list", "activ"]
-        
-        # 3. Check if ANY word in the sentence starts with ANY of those prefixes
         is_task_query = any(word.startswith(prefix) for word in words_in_query for prefix in task_prefixes)
         
-        # Only trigger the heavy progress bar if it's a task query OR a long sentence
+        # 2. Explainable Progress Bar
         if is_task_query:
             with st.status("Martha is analyzing the dataset...", expanded=True) as status:
                 progress_bar = st.progress(0)
@@ -153,15 +172,14 @@ def combined_interface():
                 st.write("✅ Compiling final trust and safety report...")
                 progress_bar.progress(100)
                 status.update(label="Analysis Complete", state="complete", expanded=False)
+        else:
+            st.container()
                 
-            
-        # The Persona Typing Effect + Cited Data Split
+        # 3. Martha's Generation State
         with st.chat_message("assistant", avatar="🧑‍💻"):
             message_placeholder = st.empty()
             message_placeholder.markdown("*(Martha is typing...)*")
-            time.sleep(0.2) 
             
-            # 2. Build the memory string to send to the AI
             chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
             full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
             
@@ -169,49 +187,54 @@ def combined_interface():
                 response = model.generate_content(full_prompt)
                 message_placeholder.empty() 
                 
-                final_ai_text = response.text
-                
+                # Split and stream the Verified Expander logic
                 if "|||" in response.text:
                     chat_text, raw_data = response.text.split("|||", 1)
-                    
                     st.write_stream(stream_typing(chat_text.strip()))
                     
                     with st.expander("📊 View System Data Verification", expanded=True):
                         st.caption("Raw extract from Crane AI Database:")
                         st.markdown(raw_data.strip())
                         
-                    # 3a. Save the AI's full split response to memory
-                    st.session_state.messages.append({"role": "assistant", "content": chat_text.strip() + "\n\n**Raw Data:**\n" + raw_data.strip()})
                 else:
                     st.write_stream(stream_typing(response.text))
-                    # 3b. Save the normal response to memory
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    
+                # Store EXACT response to history to ensure the expander box persists on reload
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
                     
             except ResourceExhausted:
                 st.warning("⚠️ Martha is helping someone else right now. Please wait 15 seconds.")
             except Exception as e:
                 st.error("System Error.")
 
-
-
 combined_interface()
-st.write("---")
 
-if st.button("✅ I found the two products!"):
-    total_time = round(time.time() - st.session_state.start_time, 2)
-    st.session_state.participant_id = int(time.time()) 
+# --- BOTTOM FINISH BUTTON ---
+st.write("---")
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    finish_placeholder = st.empty()
     
-    data = {
-        "Participant_ID": st.session_state.participant_id, 
-        "Condition": "Combined", 
-        "Total_Time_Seconds": total_time, 
-        "Prompt_Iterations": st.session_state.iteration_count
-    }
-    
-    try:
-        supabase.table("HCI").insert(data).execute()
-        st.success("Data logged. Redirecting to final survey...")
-        time.sleep(0.5)
-        st.switch_page("pages/survey.py") 
-    except Exception as e:
-        st.error(f"Error: {e}")
+    if finish_placeholder.button("✅ I found the two products!", type="primary", use_container_width=True):
+        finish_placeholder.empty() 
+        
+        with st.container():
+            st.info("Redirecting to final survey...")
+            
+            total_time = round(time.time() - st.session_state.start_time, 2)
+            part_id = st.session_state.get("participant_id", int(time.time()))
+            group = st.session_state.get("experiment_group", "Combined") 
+            
+            data = {
+                "Participant_ID": part_id, 
+                "Condition": group,    
+                "Total_Time_Seconds": total_time, 
+                "Prompt_Iterations": st.session_state.iteration_count
+            }
+            
+            try:
+                supabase.table("HCI").insert(data).execute()
+                time.sleep(0.5)
+                st.switch_page("pages/survey.py") 
+            except Exception as e:
+                st.error(f"Error logging data: {e}")
