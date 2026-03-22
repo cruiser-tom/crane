@@ -77,7 +77,7 @@ if ui_group == "Minimal":
     m3 = st.radio("3. I felt I had to put in more mental effort to formulate useful questions compared to what a guided interface might require.", options_7pt, horizontal=True, index=None)
     m4 = st.radio("4. Despite the minimal interface, I felt in control of the direction of the conversation.", options_7pt, horizontal=True, index=None)
     
-   st.write("**5. Rate how much you wished the interface had provided the following features:**")
+    st.write("**5. Rate how much you wished the interface had provided the following features:**")
     st.caption("Scale: 1 = Did not want it at all, 7 = Strongly wanted it")
     rank_m1 = st.radio("Suggested prompts", options_7pt, horizontal=True, index=None, key="rm1")
     rank_m2 = st.radio("Confidence score", options_7pt, horizontal=True, index=None, key="rm2")
@@ -93,7 +93,7 @@ elif ui_group == "Explainable":
     e4 = st.radio("4. The quick-prompt suggestion chips were helpful in guiding me toward productive questions.", options_7pt, horizontal=True, index=None)
     e5 = st.radio("5. The additional visual elements felt like they slowed me down rather than helping me.", options_7pt, horizontal=True, index=None)
     
-   st.write("**6. Rate how much each of the following features positively influenced your trust in the AI:**")
+    st.write("**6. Rate how much each of the following features positively influenced your trust in the AI:**")
     st.caption("Scale: 1 = No positive influence, 7 = Strong positive influence")
     rank_e1 = st.radio("Confidence badge", options_7pt, horizontal=True, index=None, key="re1")
     rank_e2 = st.radio("Status indicators (Progress Bar)", options_7pt, horizontal=True, index=None, key="re2")
@@ -109,7 +109,7 @@ elif ui_group == "Verified":
     v4 = st.radio("4. Having numerical evidence available reduced the number of follow-up questions I needed to ask.", options_7pt, horizontal=True, index=None)
     v5 = st.radio("5. The volume of data and numbers presented felt overwhelming at times.", options_7pt, horizontal=True, index=None)
     
-   st.write("**6. Rate how much each of the following elements positively influenced your trust in the AI:**")
+    st.write("**6. Rate how much each of the following elements positively influenced your trust in the AI:**")
     st.caption("Scale: 1 = No positive influence, 7 = Strong positive influence")
     rank_v1 = st.radio("Cited numbers within the text", options_7pt, horizontal=True, index=None, key="rv1")
     rank_v2 = st.radio("The Markdown data table", options_7pt, horizontal=True, index=None, key="rv2")
