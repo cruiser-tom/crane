@@ -10,10 +10,10 @@ st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_sta
 st.markdown(
     """
     <style>
-    /* 1. Hide Streamlit's default elements */
+    /* 1. Hide default Streamlit elements */
     #MainMenu, footer, header {visibility: hidden;}
 
-    /* 2. Container Sizing (700px width) */
+    /* 2. Lock the main width */
     .block-container {
         max-width: 700px !important; 
         padding-top: 3rem !important;
@@ -23,52 +23,67 @@ st.markdown(
         max-width: 700px !important; 
     }
 
-    /* 3. HIDE ALL AVATARS COMPLETELY */
-    [data-testid="stChatMessageAvatar"] {
+    /* 3. ABSOLUTE AVATAR DESTRUCTION */
+    /* This targets the specific internal class Streamlit uses for avatars */
+    div[data-testid="stChatMessageAvatar"] {
         display: none !important;
+        width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    /* Remove the gap left by the hidden avatar */
-    [data-testid="stChatMessage"] {
+    /* Removes the gap left behind */
+    div[data-testid="stChatMessage"] {
         gap: 0 !important;
     }
 
-    /* 4. USER BUBBLE STYLING */
-    /* Flips the row to put the user on the right */
+    /* 4. USER MESSAGE - Pushed right, perfect bubble */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
         display: flex !important;
-        flex-direction: row-reverse !important; 
+        flex-direction: row-reverse !important; /* Flips to the right */
         background-color: transparent !important;
+        width: 100% !important;
     }
-    /* Draws the dark gray bubble around the text */
+    
+    /* We apply the background color to the innermost container to prevent the "pill" stretching */
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
+        background-color: transparent !important; /* Make outer wrapper transparent */
+        display: flex !important;
+        justify-content: flex-end !important;
+        width: 100% !important;
+    }
+
+    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stMarkdownContainer"] {
         background-color: #2b2b2b !important;
         color: #ffffff !important;
         padding: 12px 18px !important;
         border-radius: 20px 20px 5px 20px !important;
-        max-width: 80% !important;
         width: fit-content !important;
+        max-width: 100% !important;
     }
 
-    /* 5. AI BUBBLE STYLING (Left-aligned, transparent) */
+    /* Clean up the text spacing inside the bubble */
+    div[data-testid="stChatMessage"]:has(.user-anchor) p {
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: right !important;
+    }
+
+    /* 5. AI MESSAGE - Flush left, transparent */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
         display: flex !important;
         flex-direction: row !important;
         background-color: transparent !important;
     }
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        background-color: transparent !important;
         padding: 10px 0px !important;
     }
-
-    /* 6. Clean up bottom spacing on text */
-    div[data-testid="stChatMessageContent"] p {
+    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) p {
         margin-bottom: 0 !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
