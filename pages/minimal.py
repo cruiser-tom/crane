@@ -76,7 +76,7 @@ def minimalist_interface():
             st.markdown(message["content"])
             st.markdown("<br>", unsafe_allow_html=True) # Adds a small gap below AI messages
 
-    user_query = st.chat_input("Message AI...")
+    user_query = st.chat_input("Message Crane...")
 
     
     # --- THE "EMPTY STATE" ---
