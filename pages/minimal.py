@@ -10,45 +10,59 @@ st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_sta
 st.markdown(
     """
     <style>
-    /* 1. Hide Streamlit's default header, menu, and footer */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    /* 1. Hide Streamlit's default elements */
+    #MainMenu, footer, header {visibility: hidden;}
 
-    /* 2. Set the exact Gemini width (approx 850px) for the main content */
+    /* 2. Container Sizing (700px width) */
     .block-container {
-        max-width: 700px !important;
+        max-width: 700px !important; 
         padding-top: 3rem !important;
         padding-bottom: 8rem !important; 
     }
-
-    /* 3. Match the chat input box width perfectly to the content */
     [data-testid="stBottomBlock"] > div {
-        max-width: 850px !important;
+        max-width: 700px !important; 
     }
 
-    /* 4. User Message Styling - Dark gray bubble */
+    /* 3. HIDE ALL AVATARS COMPLETELY */
+    [data-testid="stChatMessageAvatar"] {
+        display: none !important;
+    }
+    /* Remove the gap left by the hidden avatar */
+    [data-testid="stChatMessage"] {
+        gap: 0 !important;
+    }
+
+    /* 4. USER BUBBLE STYLING */
+    /* Flips the row to put the user on the right */
     div[data-testid="stChatMessage"]:has(.user-anchor) {
-        flex-direction: row-reverse;
-        background-color: transparent;
+        display: flex !important;
+        flex-direction: row-reverse !important; 
+        background-color: transparent !important;
     }
+    /* Draws the dark gray bubble around the text */
     div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        align-items: flex-end;
-        
-        padding: 15px 20px;
-        border-radius: 20px 20px 5px 20px;
-        
-        max-width: 80%;
+        background-color: #2b2b2b !important;
+        color: #ffffff !important;
+        padding: 12px 18px !important;
+        border-radius: 20px 20px 5px 20px !important;
+        max-width: 80% !important;
+        width: fit-content !important;
     }
-    div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
-        text-align: right;
-        margin-bottom: 0;
+
+    /* 5. AI BUBBLE STYLING (Left-aligned, transparent) */
+    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
+        display: flex !important;
+        flex-direction: row !important;
+        background-color: transparent !important;
     }
-    
-    /* 5. AI Message Styling - Clean and transparent */
     div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        background-color: transparent;
-        padding: 10px 15px;
+        background-color: transparent !important;
+        padding: 10px 0px !important;
+    }
+
+    /* 6. Clean up bottom spacing on text */
+    div[data-testid="stChatMessageContent"] p {
+        margin-bottom: 0 !important;
     }
     </style>
     """,
