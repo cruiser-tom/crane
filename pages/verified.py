@@ -127,12 +127,11 @@ def cited_interface():
                 """
                 <div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
                     <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Crane <span style="color: #0068c9;">AI</span></h1>
-                    st.error("🛡️ Data Verified System: All AI outputs are cross-referenced.")
                 </div>
                 """, 
                 unsafe_allow_html=True
             )
-            
+            st.error("🛡️ Data Verified System: All AI outputs are cross-referenced.")
             st.caption("Suggested quick queries:")
             col1, col2 = st.columns(2)
             
