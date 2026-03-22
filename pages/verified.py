@@ -4,10 +4,20 @@ from supabase import create_client
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 
-st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Crane AI - Verified", layout="centered", initial_sidebar_state="collapsed")
 
+# --- DEVELOPMENT BYPASS (Remove or comment out before launching study) ---
+if 'participant_id' not in st.session_state:
+    st.session_state.participant_id = int(time.time())
+if 'experiment_group' not in st.session_state:
+    st.session_state.experiment_group = "Verified"
 
+# --- STRICT SECURITY CHECK (Uncomment this when the study goes live!) ---
+# if 'participant_id' not in st.session_state or 'experiment_group' not in st.session_state:
+#     st.warning("⚠️ No active session found. Please start from the main page.")
+#     st.stop()
 
+# --- CUSTOM CSS ---
 st.markdown(
     """
     <style>
@@ -22,14 +32,6 @@ st.markdown(
     }
     [data-testid="stBottomBlock"] > div {
         max-width: 700px !important; 
-    }
-    /* Hide Streamlit's default avatars for the AI messages */
-    [data-testid="stChatMessageAvatar"] {
-        display: none !important;
-    }
-    [data-testid="stChatMessage"] {
-        gap: 0 !important;
-        background-color: transparent !important;
     }
     </style>
     """,
@@ -52,17 +54,16 @@ if 'iteration_count' not in st.session_state:
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# ---> PASTE YOUR VERIFIED/CITED SYSTEM PROMPT HERE <---
+# ---> VERIFIED SYSTEM PROMPT <---
 SYSTEM_CONTEXT = """
 You are an advanced AI designed to analyze e-commerce product reviews.
 
 CRITICAL FORMATTING RULES - YOU MUST OBEY THESE:
 1. IF the user asks to analyze products, check reviews, or find bot activity: Your response MUST be split into two parts using "|||" as the delimiter.
-   - Part 1 (Before |||) is your friendly conversational answer.
+   - Part 1 (Before |||) is your conversational answer.
    - Part 2 (After |||) MUST be a 3-column table: | Product Name | Total Reviews | Rating | 
    - Part 3 is your AI analysis in bullet points.
-2. IF the user is just greeting you (e.g., "Hi", "Thanks", "How are you?"): DO NOT use the "|||" delimiter or the table. Just reply conversationally and naturally.
-
+2. IF the user is just greeting you (e.g., "Hi", "Thanks", "How are you?"): DO NOT use the "|||" delimiter or the table. Just reply conversationally and neutrally as the Crane AI System.
 
 EXAMPLE OF THE EXACT REQUIRED FORMAT:
 I have analyzed the catalog and found the products you requested.
@@ -86,14 +87,13 @@ I have analyzed the catalog and found the products you requested.
 # Product: Quantum Laptop Stand (3,400 Reviews, 4.8/5 Rating). AI Analysis: Authentic.
 """
 
-
 def cited_interface():
     
     st.error("🛡️ Data Verified System: All AI outputs are cross-referenced.")
+    
     # --- DISPLAY PAST CHAT HISTORY ---
     for message in st.session_state.messages:
         if message["role"] == "user":
-            # Pure HTML User Bubble (Forces perfect right-alignment and shape)
             st.markdown(f"""
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                     <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
@@ -102,11 +102,17 @@ def cited_interface():
                 </div>
             """, unsafe_allow_html=True)
         else:
-            # Standard AI Message (CSS handles hiding the avatar)
-            with st.chat_message("assistant"):
+            # NO MORE st.chat_message! Pure Markdown rendering for AI
+            if "|||" in message["content"]:
+                chat_text, raw_data = message["content"].split("|||", 1)
+                st.markdown(chat_text.strip())
+                with st.expander("📊 View System Data Verification", expanded=False):
+                    st.caption("Raw extract from Crane AI Database:")
+                    st.markdown(raw_data.strip())
+            else:
                 st.markdown(message["content"])
+            st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- THE SINGLE CHAT INPUT (No duplicates!) ---
     user_query = st.chat_input("Message Crane...")
     
     # --- THE "EMPTY STATE" ---
@@ -121,20 +127,13 @@ def cited_interface():
             unsafe_allow_html=True
         )
         
-        
         st.caption("Suggested quick queries:")
         col1, col2 = st.columns(2)
-        clicked_suggestion_1 = col1.button("Can you check for fake reviews?")
-        clicked_suggestion_2 = col2.button("Which products have suspicious bot activity?")
-        
-       # If they click the button, we force that text into the user_query variable
-        if clicked_suggestion_1:
+        if col1.button("Can you check for fake reviews?"):
             user_query = "Can you check for fake reviews?"
-        elif clicked_suggestion_2:
+        if col2.button("Which products have suspicious bot activity?"):
             user_query = "Which products have suspicious bot activity?"
             
-  
-
     # --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
@@ -147,6 +146,7 @@ def cited_interface():
                 </div>
             </div>
         """, unsafe_allow_html=True)
+        # Store user query to history
         st.session_state.messages.append({"role": "user", "content": user_query})
             
         # 2. Spinner & AI Call
@@ -166,21 +166,20 @@ def cited_interface():
             try:
                 response = model.generate_content(full_prompt)
                 
-                with st.chat_message("assistant"):
-                    if "|||" in response.text:
-                        chat_text, raw_data = response.text.split("|||", 1)
-                        st.write(chat_text.strip())
-                        
-                        with st.expander("📊 View System Data Verification", expanded=True):
-                            st.caption("Raw extract from Crane AI Database:")
-                            st.markdown(raw_data.strip())
-                            
-                        # Save the split response to memory
-                        st.session_state.messages.append({"role": "assistant", "content": chat_text.strip() + "\n\n**Raw Data Verification:**\n" + raw_data.strip()})
-                    else:
-                        st.write(response.text)
-                        # Save normal response to memory
-                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                # 3. NO st.chat_message! Render directly to the screen.
+                if "|||" in response.text:
+                    chat_text, raw_data = response.text.split("|||", 1)
+                    st.markdown(chat_text.strip())
+                    with st.expander("📊 View System Data Verification", expanded=True):
+                        st.caption("Raw extract from Crane AI Database:")
+                        st.markdown(raw_data.strip())
+                else:
+                    st.markdown(response.text)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Store the EXACT raw response to memory so the history loop can re-split it later
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
                         
             except ResourceExhausted:
                 st.warning("⚠️ High traffic. Please wait 15 seconds.")
@@ -188,6 +187,7 @@ def cited_interface():
                 st.error("System Error.")
 
 cited_interface()
+
 st.write("---")
 
 # --- BOTTOM FINISH BUTTON ---
@@ -196,7 +196,6 @@ with col2:
     if st.button("✅ I found the two products!", type="primary", use_container_width=True):
         total_time = round(time.time() - st.session_state.start_time, 2)
         
-        # Safely gets the ID from memory, or creates the numeric timestamp fallback for testing
         part_id = st.session_state.get("participant_id", int(time.time()))
         group = st.session_state.get("experiment_group", "Verified")
         
