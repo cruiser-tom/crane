@@ -81,7 +81,7 @@ def cited_interface():
     st.error("🛡️ Data Verified System: All AI outputs are cross-referenced.")
     user_query = st.chat_input("Message Crane...")
     
-    # --- THE "EMPTY STATE" ---
+  
     
     # --- THE "EMPTY STATE" ---
     if not user_query and st.session_state.iteration_count == 0:
@@ -106,10 +106,22 @@ def cited_interface():
 
 # --- DISPLAY PAST CHAT HISTORY ---
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            if message["role"] == "user":
-                st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
+        if message["role"] == "user":
+            # Pure HTML for the User: Guarantees right-alignment and perfect bubble shape
+            st.markdown(f"""
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                        {message["content"]}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Standard Markdown for AI: Flush left, transparent, no avatars
             st.markdown(message["content"])
+            st.markdown("<br>", unsafe_allow_html=True) # Adds a small gap below AI messages
+
+    user_query = st.chat_input("Message Crane...")
+
 
     # --- THE ACTIVE STATE ---
     if user_query:
