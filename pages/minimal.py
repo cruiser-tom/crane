@@ -6,14 +6,13 @@ from google.api_core.exceptions import ResourceExhausted
 
 st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
 
-# --- CUSTOM CSS ---
 st.markdown(
     """
     <style>
-    /* 1. Hide default Streamlit elements */
+    /* Hide default Streamlit elements */
     #MainMenu, footer, header {visibility: hidden;}
 
-    /* 2. Lock the main width */
+    /* Lock the main width to 700px and center it */
     .block-container {
         max-width: 700px !important; 
         padding-top: 3rem !important;
@@ -22,68 +21,11 @@ st.markdown(
     [data-testid="stBottomBlock"] > div {
         max-width: 700px !important; 
     }
-
-    /* 3. ABSOLUTE AVATAR DESTRUCTION */
-    /* This targets the specific internal class Streamlit uses for avatars */
-    div[data-testid="stChatMessageAvatar"] {
-        display: none !important;
-        width: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    /* Removes the gap left behind */
-    div[data-testid="stChatMessage"] {
-        gap: 0 !important;
-    }
-
-    /* 4. USER MESSAGE - Pushed right, perfect bubble */
-    div[data-testid="stChatMessage"]:has(.user-anchor) {
-        display: flex !important;
-        flex-direction: row-reverse !important; /* Flips to the right */
-        background-color: transparent !important;
-        width: 100% !important;
-    }
-    
-    /* We apply the background color to the innermost container to prevent the "pill" stretching */
-    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        background-color: transparent !important; /* Make outer wrapper transparent */
-        display: flex !important;
-        justify-content: flex-end !important;
-        width: 100% !important;
-    }
-
-    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stMarkdownContainer"] {
-        background-color: #2b2b2b !important;
-        color: #ffffff !important;
-        padding: 12px 18px !important;
-        border-radius: 20px 20px 5px 20px !important;
-        width: fit-content !important;
-        max-width: 100% !important;
-    }
-
-    /* Clean up the text spacing inside the bubble */
-    div[data-testid="stChatMessage"]:has(.user-anchor) p {
-        margin: 0 !important;
-        padding: 0 !important;
-        text-align: right !important;
-    }
-
-    /* 5. AI MESSAGE - Flush left, transparent */
-    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) {
-        display: flex !important;
-        flex-direction: row !important;
-        background-color: transparent !important;
-    }
-    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) div[data-testid="stChatMessageContent"] {
-        padding: 10px 0px !important;
-    }
-    div[data-testid="stChatMessage"]:not(:has(.user-anchor)) p {
-        margin-bottom: 0 !important;
-    }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
@@ -119,17 +61,22 @@ Do not use markdown tables unless the user explicitly asks for one.
 
 def minimalist_interface():
     
-    # --- DISPLAY PAST CHAT HISTORY ---
-    # 1. Update the History Loop
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            if message["role"] == "user":
-                # THIS LINE IS CRITICAL FOR THE CSS TO WORK
-                st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
+        if message["role"] == "user":
+            # Pure HTML for the User: Guarantees right-alignment and perfect bubble shape
+            st.markdown(f"""
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                        {message["content"]}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Standard Markdown for AI: Flush left, transparent, no avatars
             st.markdown(message["content"])
- 
+            st.markdown("<br>", unsafe_allow_html=True) # Adds a small gap below AI messages
 
-# ... (in your active state) ...
+    user_query = st.chat_input("Message AI...")
 
 # 2. Update the AI Response logic
 
@@ -157,14 +104,18 @@ def minimalist_interface():
             user_query = "Which products have suspicious bot activity?"
 
     # --- THE ACTIVE STATE ---
+    
     if user_query:
         st.session_state.iteration_count += 1
         
-        # 1. Show the user message
-        with st.chat_message("user"):
-            # THIS LINE IS ALSO CRITICAL
-            st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
-            st.write(user_query)
+        # 1. Show the user message using raw HTML
+        st.markdown(f"""
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                    {user_query}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
         st.session_state.messages.append({"role": "user", "content": user_query})
             
         # 2. Prefix Filter logic
@@ -185,16 +136,16 @@ def minimalist_interface():
             try:
                 response = model.generate_content(full_prompt)
                 
-                # Standard default Streamlit icon, no typing delay, no tables
-                with st.chat_message("assistant"): 
-                    st.write(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                
+                # 4. Show AI response natively (No st.chat_message!)
+                st.markdown(response.text)
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
                     
             except ResourceExhausted:
                 st.warning("⚠️ High traffic. Please wait 15 seconds.")
             except Exception as e:
                 st.error("System Error.")
+                
 
 minimalist_interface()
 
