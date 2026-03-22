@@ -4,29 +4,35 @@ from supabase import create_client
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 
-st.set_page_config(page_title="Crane AI", layout="centered")
-# --- CUSTOM CSS FOR RIGHT-ALIGNED USER CHAT ---
+st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
+
+# --- DEVELOPMENT BYPASS (Remove or comment out before launching study) ---
+if 'participant_id' not in st.session_state:
+    st.session_state.participant_id = int(time.time())
+if 'experiment_group' not in st.session_state:
+    st.session_state.experiment_group = "Explainable"
+
+# --- CUSTOM CSS (The Clean HTML Foundation) ---
 st.markdown(
     """
     <style>
-    /* Target any chat message that contains our hidden user-anchor */
-    div[data-testid="stChatMessage"]:has(.user-anchor) {
-        flex-direction: row-reverse;
+    /* Hide default Streamlit elements */
+    #MainMenu, footer, header {visibility: hidden;}
+
+    /* Lock the main width to 700px and center it */
+    .block-container {
+        max-width: 700px !important; 
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important; 
     }
-    
-    /* Align the text inside the content box to the right */
-    div[data-testid="stChatMessage"]:has(.user-anchor) div[data-testid="stChatMessageContent"] {
-        align-items: flex-end;
-    }
-    
-    /* Ensure paragraph text is right-aligned */
-    div[data-testid="stChatMessage"]:has(.user-anchor) .stMarkdown p {
-        text-align: right;
+    [data-testid="stBottomBlock"] > div {
+        max-width: 700px !important; 
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
@@ -35,15 +41,15 @@ def init_connection():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 supabase = init_connection()
 
+# --- INITIALIZE MEMORY ---
 if 'start_time' not in st.session_state:
     st.session_state.start_time = time.time()
 if 'iteration_count' not in st.session_state:
     st.session_state.iteration_count = 0
-
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-
+# ---> EXPLAINABLE SYSTEM PROMPT <---
 SYSTEM_CONTEXT = """
 You are an advanced explainable AI designed to analyze e-commerce product reviews and detect fake, AI-generated text.
 Only answer based on this provided data. Keep responses concise and analytical.
@@ -60,12 +66,30 @@ IF the user is just greeting you (e.g., "Hi", "Thanks", "How are you?"): DO NOT 
 # Product: Quantum Laptop Stand (3,400 Reviews, 4.8/5 Rating). AI Analysis: Authentic.
 """
 
-
 def scaffolded_interface():
+    
+    # --- DISPLAY PAST CHAT HISTORY ---
+    for message in st.session_state.messages:
+        if message["role"] == "user":
+            # Pure HTML User Bubble
+            st.markdown(f"""
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                        {message["content"]}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Standard Markdown for AI (No st.chat_message)
+            st.markdown(message["content"])
+            st.caption("🔒 Verified by Crane AI Trust & Safety Engine | **Confidence Score: 96.8%**")
+            st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- THE SINGLE CHAT INPUT ---
     user_query = st.chat_input("Message Crane...")
     
     # --- THE "EMPTY STATE" ---
-    if not user_query and st.session_state.iteration_count == 0:
+    if not user_query and len(st.session_state.messages) == 0:
         st.markdown(
             """
             <div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
@@ -76,34 +100,25 @@ def scaffolded_interface():
             unsafe_allow_html=True
         )
         
-        # 1. We removed 'disabled=True'
-        # 2. We assign the button click to a variable
         st.caption("Suggested quick queries:")
         col1, col2 = st.columns(2)
-        clicked_suggestion_1 = col1.button("Scan all products for fake reviews")
-        clicked_suggestion_2 = col2.button("List products with 100% bot activity")
-        
-        # 3. If they click the button, we force that text into the user_query variable
-        if clicked_suggestion_1:
+        if col1.button("Scan all products for fake reviews", use_container_width=True):
             user_query = "Scan all products for fake reviews"
-        elif clicked_suggestion_2:
+        if col2.button("List products with 100% bot activity", use_container_width=True):
             user_query = "List products with 100% bot activity"
-
-# --- DISPLAY PAST CHAT HISTORY ---
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            if message["role"] == "user":
-                st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
-            st.markdown(message["content"])
 
     # --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
         
-        # 1. Show and save user message
-        with st.chat_message("user"):
-            st.markdown("<div class='user-anchor'></div>", unsafe_allow_html=True)
-            st.write(user_query)
+        # 1. Show the user message instantly via HTML
+        st.markdown(f"""
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                    {user_query}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
         st.session_state.messages.append({"role": "user", "content": user_query})
             
         # 2. Prefix Filter for Progress Bar
@@ -111,6 +126,7 @@ def scaffolded_interface():
         task_prefixes = ["prod", "review", "bot", "fake", "susp", "scan", "analy", "data", "list", "activ"]
         is_task_query = any(word.startswith(prefix) for word in words_in_query for prefix in task_prefixes)
         
+        # Explainable Progress Bar Logic (Kept exactly as requested)
         if is_task_query:
             with st.status("Crane AI is analyzing the dataset...", expanded=True) as status:
                 progress_bar = st.progress(0)
@@ -123,36 +139,53 @@ def scaffolded_interface():
                 st.write("✅ Compiling final trust and safety report...")
                 progress_bar.progress(100)
                 status.update(label="Analysis Complete", state="complete", expanded=False)
+        else:
+            # Add a tiny invisible container to keep spacing consistent if no progress bar is shown
+            st.container()
                 
-        # 3. Generate and save AI response
-        with st.chat_message("assistant", avatar="🧑‍💻"):
-            chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
-            full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
+        # 3. Generate and show AI response
+        chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
+        full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
+        
+        try:
+            response = model.generate_content(full_prompt)
             
-            try:
-                response = model.generate_content(full_prompt)
-                st.write(response.text)
-                st.caption("🔒 Verified by Crane AI Trust & Safety Engine | **Confidence Score: 96.8%**")
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-            except ResourceExhausted:
-                st.warning("⚠️ High traffic. Please wait 15 seconds.")
-            except Exception as e:
-                st.error("System Error.")
-                
-             
-   
+            # Show AI response natively (No st.chat_message)
+            st.markdown(response.text)
+            st.caption("🔒 Verified by Crane AI Trust & Safety Engine | **Confidence Score: 96.8%**")
+            st.markdown("<br>", unsafe_allow_html=True)
             
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+            
+        except ResourceExhausted:
+            st.warning("⚠️ High traffic. Please wait 15 seconds.")
+        except Exception as e:
+            st.error("System Error.")
 
 scaffolded_interface()
 st.write("---")
 
-if st.button("✅ I found the two products!"):
-    total_time = round(time.time() - st.session_state.start_time, 2)
-    data = {"Participant_ID": int(time.time()), "Condition": "Explainable", "Total_Time_Seconds": total_time, "Prompt_Iterations": st.session_state.iteration_count}
-    try:
-        supabase.table("HCI").insert(data).execute()
-        st.success("Data logged. Redirecting to final survey...")
-        time.sleep(0.5)
-        st.switch_page("pages/survey.py") 
-    except Exception as e:
-        st.error(f"Error: {e}")
+# --- BOTTOM FINISH BUTTON ---
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    if st.button("✅ I found the two products!", type="primary", use_container_width=True):
+        total_time = round(time.time() - st.session_state.start_time, 2)
+        
+        # Safely gets the ID from memory, or creates the numeric timestamp fallback
+        part_id = st.session_state.get("participant_id", int(time.time()))
+        group = st.session_state.get("experiment_group", "Explainable")
+        
+        data = {
+            "Participant_ID": part_id, 
+            "Condition": group,    
+            "Total_Time_Seconds": total_time, 
+            "Prompt_Iterations": st.session_state.iteration_count
+        }
+        
+        try:
+            supabase.table("HCI").insert(data).execute()
+            st.success("Data logged. Redirecting to final survey...")
+            time.sleep(0.5)
+            st.switch_page("pages/survey.py") 
+        except Exception as e:
+            st.error(f"Error: {e}")
