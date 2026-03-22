@@ -123,16 +123,11 @@ def cited_interface():
         # 2. Put the welcome text and buttons INSIDE the wrapper
         with empty_placeholder.container():
             # The custom HTML now includes the title AND a perfectly centered, pill-shaped badge
-            st.markdown(
-                """
-                <div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
-                    <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 15px;">Crane <span style="color: #0068c9;">AI</span></h1>
-                    
-                    <div style="display: inline-block; background-color: rgba(255, 75, 75, 0.1); border: 1px solid rgba(255, 75, 75, 0.3); color: #ff4b4b; padding: 8px 18px; border-radius: 50px; font-size: 0.95rem; font-weight: 500;">
-                        🛡️ Data Verified System: All AI outputs are cross-referenced.
-                    </div>
-                </div>
-                """, 
+           st.markdown(
+                """<div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
+<h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 15px;">Crane <span style="color: #0068c9;">AI</span></h1>
+<div style="display: inline-block; background-color: rgba(255, 75, 75, 0.1); border: 1px solid rgba(255, 75, 75, 0.3); color: #ff4b4b; padding: 8px 18px; border-radius: 50px; font-size: 0.95rem; font-weight: 500;">🛡️ Data Verified System: All AI outputs are cross-referenced.</div>
+</div>""", 
                 unsafe_allow_html=True
             )
             
