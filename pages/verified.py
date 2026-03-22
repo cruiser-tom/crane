@@ -6,10 +6,7 @@ from google.api_core.exceptions import ResourceExhausted
 
 st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
 
-# --- SECURITY CHECK ---
-if 'participant_id' not in st.session_state or 'experiment_group' not in st.session_state:
-    st.warning("⚠️ No active session found. Please start from the main page.")
-    st.stop()
+
 
 st.markdown(
     """
@@ -157,7 +154,7 @@ def cited_interface():
             try:
                 response = model.generate_content(full_prompt)
                 
-                with st.chat_message("assistant", avatar="🧑‍💻"):
+                with st.chat_message("assistant"):
                     if "|||" in response.text:
                         chat_text, raw_data = response.text.split("|||", 1)
                         st.write(chat_text.strip())
