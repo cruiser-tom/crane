@@ -174,7 +174,7 @@ def scaffolded_interface():
             
             # Show AI response natively (No st.chat_message)
             st.markdown(response.text)
-            st.caption("🔒 Verified by Crane AI Trust & Safety Engine | **Confidence Score: 96.8%**")
+            st.caption("🛡️ System Confidence Score: 96.8%")
             st.markdown("<br>", unsafe_allow_html=True)
             
             st.session_state.messages.append({"role": "assistant", "content": response.text})
