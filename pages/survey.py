@@ -121,7 +121,7 @@ elif ui_group == "Verified":
 
 elif ui_group == "Combined":
     cb1 = st.radio("1. Martha's friendly personality made the data verification table feel more trustworthy.", options_7pt, horizontal=True, index=None)
-    cb2 = st.radio("2. The combination of Martha's tone AND the raw data table gave me more confidence than either feature alone.", options_7pt, horizontal=True, index=None)
+    cb2 = st.radio("2. Martha's conversational tone made the raw data table easier to trust.", options_7pt, horizontal=True, index=None)
     cb3 = st.radio("3. The animated status indicators and progress bar made me feel Martha was working harder to find a reliable answer.", options_7pt, horizontal=True, index=None)
     cb4 = st.radio("4. The number of features in the interface felt overwhelming rather than helpful.", options_7pt, horizontal=True, index=None)
     cb5 = st.radio("5. Martha's personality influenced my trust more than the data table she provided.", options_7pt, horizontal=True, index=None)
