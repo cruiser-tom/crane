@@ -40,6 +40,7 @@ col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
 
     if st.button("Initialize AI System", type="primary", use_container_width=True):
+        st.session_state.participant_id = int(time.time())
         # Update the group names for your database
         groups = ["Minimal", "Explainable", "Verified", "Combined"]
         st.session_state.experiment_group = random.choice(groups)
