@@ -139,7 +139,9 @@ def minimalist_interface():
                 </div>
             </div>
         """, unsafe_allow_html=True)
-        st.session_state.messages.append({"role": "user", "content": user_query})
+        # Prevent duplicate appends from button clicks
+        if not st.session_state.messages or st.session_state.messages[-1]["content"] != user_query:
+            st.session_state.messages.append({"role": "user", "content": user_query})
               
         # 2. Prefix Filter logic
         words_in_query = user_query.lower().split()
@@ -159,11 +161,10 @@ def minimalist_interface():
             try:
                 # Use retry function, standard output only
                 response_text = generate_with_retry(full_prompt)
-                
-                
-                st.write_stream(stream_typing(response_text))
+                st.markdown(response_text)
                 st.markdown("<br>", unsafe_allow_html=True)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
+                if not st.session_state.messages or st.session_state.messages[-1]["content"] != response_text:
+                    st.session_state.messages.append({"role": "assistant", "content": response_text})
                     
             except Exception as e:
                 st.error("System Error.")
