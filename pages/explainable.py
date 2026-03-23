@@ -6,18 +6,12 @@ from google.api_core.exceptions import ResourceExhausted
 
 st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
 
-
 # --- DEVELOPMENT BYPASS (Remove or comment out before launching study) ---
-# if 'participant_id' not in st.session_state:
-#     st.session_state.participant_id = int(time.time())
-# if 'experiment_group' not in st.session_state:
-#     st.session_state.experiment_group = "Explainable"
+if 'participant_id' not in st.session_state:
+    st.session_state.participant_id = int(time.time())
+if 'experiment_group' not in st.session_state:
+    st.session_state.experiment_group = "Explainable"
 
-# --- STRICT SECURITY CHECK (Uncomment this when the study goes live!) ---
-if 'participant_id' not in st.session_state or 'experiment_group' not in st.session_state:
-    st.warning("⚠️ No active session found. Please start from the main page.")
-    st.stop()
-    
 # --- CUSTOM CSS (The Clean HTML Foundation) ---
 st.markdown(
     """
@@ -42,6 +36,19 @@ st.markdown(
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
+def generate_with_retry(prompt, max_retries=3):
+    retries = 0
+    backoff_time = 2  
+    while retries < max_retries:
+        try:
+            response = model.generate_content(prompt)
+            return response.text
+        except ResourceExhausted:
+            time.sleep(backoff_time)
+            retries += 1
+            backoff_time *= 2  
+    return "The system is currently processing a high volume of requests. Please wait a few seconds and try your prompt again."
+
 @st.cache_resource
 def init_connection():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
@@ -57,9 +64,12 @@ if 'messages' not in st.session_state:
 
 # ---> EXPLAINABLE SYSTEM PROMPT <---
 SYSTEM_CONTEXT = """
-You are an advanced explainable AI (xAI) designed to analyze e-commerce product reviews and detect fake, AI-generated text.
-Only answer based on this provided data. Keep responses analytical and explain them.
+You are Crane AI, an explainable analysis engine. 
 IF the user is just greeting you (e.g., "Hi", "Thanks", "How are you?"): DO NOT analyse. Just reply conversationally and tell it to ask something to explain.
+Whenever you answer a query, you MUST break down your reasoning. Use phrases like 'I flagged this because...' or 'The primary factors leading to this conclusion are...'. 
+Clearly list the specific data points, linguistic patterns, or rules that influenced your final decision before giving the final answer.
+Only answer based on this provided data. Keep responses analytical and explain them.
+
 
 --- PRODUCT REVIEW DATASET ---
 # Product: AeroGlide Sneakers (4,500 Reviews, 4.9/5 Rating). AI Analysis: WARNING. 85% repetitive sentence structure. High probability of bots.
@@ -88,7 +98,7 @@ def scaffolded_interface():
         else:
             # Standard Markdown for AI (No st.chat_message)
             st.markdown(message["content"])
-            st.caption("🛡️ System Confidence Score: 96.8%")
+            st.caption("⚙️ Crane AI Analysis Engine | 🛡️ System Confidence Score: 96.8%")
             st.markdown("<br>", unsafe_allow_html=True)
 
     # --- THE SINGLE CHAT INPUT ---
@@ -128,12 +138,12 @@ def scaffolded_interface():
             user_query = "List products with 100% bot activity"
             empty_placeholder.empty()
 
-    
-    # --- THE ACTIVE STATE ---
+
+# --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
         
-        # 1. Show the user message instantly via HTML
+        # Show User message
         st.markdown(f"""
             <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                 <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
@@ -142,13 +152,12 @@ def scaffolded_interface():
             </div>
         """, unsafe_allow_html=True)
         st.session_state.messages.append({"role": "user", "content": user_query})
-            
-        # 2. Prefix Filter for Progress Bar
+        
         words_in_query = user_query.lower().split()
         task_prefixes = ["prod", "review", "bot", "fake", "susp", "scan", "analy", "data", "list", "activ"]
         is_task_query = any(word.startswith(prefix) for word in words_in_query for prefix in task_prefixes)
         
-        # Explainable Progress Bar Logic (Kept exactly as requested)
+        # Explainable Progress Bar
         if is_task_query:
             with st.status("Crane AI is analyzing the dataset...", expanded=True) as status:
                 progress_bar = st.progress(0)
@@ -158,32 +167,34 @@ def scaffolded_interface():
                 st.write("📊 Running linguistic anomaly detection models...")
                 progress_bar.progress(70)
                 time.sleep(1.0)
-                st.write("✅ Compiling final trust and safety report...")
+                st.write("✅ Compiling final report...")
                 progress_bar.progress(100)
                 status.update(label="Analysis Complete", state="complete", expanded=False)
         else:
-            # Add a tiny invisible container to keep spacing consistent if no progress bar is shown
             st.container()
-                
+              
         # 3. Generate and show AI response
+# 3. Generate and show AI response
         chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
         full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
         
         try:
-            response = model.generate_content(full_prompt)
+            # Added a clean spinner so the user knows the app isn't frozen
+            with st.spinner("Generating system response..."):
+                response_text = generate_with_retry(full_prompt)
             
             # Show AI response natively (No st.chat_message)
-            st.markdown(response.text)
-            st.caption("🛡️ System Confidence Score: 96.8%")
+            st.markdown(response_text)
+            st.caption("⚙️ Crane AI Analysis Engine | 🛡️ System Confidence Score: 96.8%")
             st.markdown("<br>", unsafe_allow_html=True)
             
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-            
-        except ResourceExhausted:
-            st.warning("⚠️ High traffic. Please wait 15 seconds.")
+            # FIXED BUG: Changed response.text to response_text
+            st.session_state.messages.append({"role": "assistant", "content": response_text})
+     
         except Exception as e:
             st.error("System Error.")
-
+            
+            
 scaffolded_interface()
 
 
