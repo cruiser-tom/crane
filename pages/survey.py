@@ -105,14 +105,14 @@ elif ui_group == "Explainable":
     
 elif ui_group == "Verified":
     v1 = st.radio("1. The formatted data tables made it easier to reach a confident decision compared to a text-only answer.", options_7pt, horizontal=True, index=None)
-    v2 = st.radio("2. The AI's use of specific numbers and citations made its answers feel more credible.", options_7pt, horizontal=True, index=None)
+    v2 = st.radio("2. The AI's use of specific numbers and raw data made its answers feel more credible.", options_7pt, horizontal=True, index=None)
     v3 = st.radio("3. The 'Data Verified System' banner made me feel the AI's outputs were more reliable.", options_7pt, horizontal=True, index=None)
     v4 = st.radio("4. Having numerical evidence available reduced the number of follow-up questions I needed to ask.", options_7pt, horizontal=True, index=None)
     v5 = st.radio("5. The volume of data and numbers presented felt overwhelming at times.", options_7pt, horizontal=True, index=None)
     
     st.write("**6. Rate how much each of the following elements positively influenced your trust in the AI:**")
     st.caption("Scale: 1 = No positive influence, 7 = Strong positive influence")
-    rank_v1 = st.radio("Cited numbers within the text", options_7pt, horizontal=True, index=None, key="rv1")
+    rank_v1 = st.radio("Specific metrics and numbers within the text", options_7pt, horizontal=True, index=None, key="rv1")
     rank_v2 = st.radio("The Markdown data table", options_7pt, horizontal=True, index=None, key="rv2")
     rank_v3 = st.radio("The 'Data Verified' red banner", options_7pt, horizontal=True, index=None, key="rv3")
     rank_v4 = st.radio("The written text explanation", options_7pt, horizontal=True, index=None, key="rv4")
