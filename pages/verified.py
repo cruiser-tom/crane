@@ -126,10 +126,14 @@ def cited_interface():
                 <div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
                     <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Crane <span style="color: #0068c9;">AI</span></h1>
                 </div>
-                <span style="font-size: 1.2rem;">🛡️</span>
-                <span style="font-weight: 500;">
-                Data Verified System: All AI outputs are cross-referenced with internal databases.
-                </span>
+                <div style="background-color: #311b1b; color: #ff4b4b; padding: 15px 20px; 
+                    border-radius: 12px; border: 1px solid #632a2a; margin-bottom: 25px;
+                    display: flex; align-items: center; gap: 10px; ">
+                    <span style="font-size: 1.2rem;">🛡️</span>
+                    <span style="font-weight: 500;">
+                    Data Verified System: All AI outputs are cross-referenced with internal databases.
+                    </span>
+                </div>
                 """, 
                 unsafe_allow_html=True
             )
