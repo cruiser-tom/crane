@@ -6,17 +6,6 @@ from google.api_core.exceptions import ResourceExhausted
 
 st.set_page_config(page_title="Crane AI", layout="centered", initial_sidebar_state="collapsed")
 
-# --- DEVELOPMENT BYPASS (Remove or comment out before launching study) ---
-# if 'participant_id' not in st.session_state:
-#     st.session_state.participant_id = int(time.time())
-# if 'experiment_group' not in st.session_state:
-#     st.session_state.experiment_group = "Minimal"
-
-# --- STRICT SECURITY CHECK (Uncomment this when the study goes live!) ---
-if 'participant_id' not in st.session_state or 'experiment_group' not in st.session_state:
-    st.warning("⚠️ No active session found. Please start from the main page.")
-    st.stop()
-
 st.markdown(
     """
     <style>
@@ -40,6 +29,19 @@ st.markdown(
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
+def generate_with_retry(prompt, max_retries=3):
+    retries = 0
+    backoff_time = 2  
+    while retries < max_retries:
+        try:
+            response = model.generate_content(prompt)
+            return response.text
+        except ResourceExhausted:
+            time.sleep(backoff_time)
+            retries += 1
+            backoff_time *= 2  
+    return "The system is currently processing a high volume of requests. Please wait a few seconds and try your prompt again."
+
 @st.cache_resource
 def init_connection():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
@@ -55,8 +57,10 @@ if 'messages' not in st.session_state:
 
 # Notice the prompt is generic: No "Martha", no table rules, just pure data access.
 SYSTEM_CONTEXT = """
-You are a standard AI assistant designed to analyze e-commerce product reviews.
-Answer the user's questions clearly and directly based on the dataset provided. 
+You are Crane AI. Answer the user's questions clearly and directly based on the dataset provided. 
+Do not explain how you arrived at your answer, do not list your steps, and do not justify your reasoning. 
+Just provide the final output.
+If the user greets (hi, hello, thank you etc.) respond accordingly.
 Do not use markdown tables unless the user explicitly asks for one.
 
 --- PRODUCT REVIEW DATASET ---
@@ -89,8 +93,7 @@ def minimalist_interface():
 
     user_query = st.chat_input("Message AI...")
 
-    
-    # --- THE "EMPTY STATE" ---
+
     # --- THE "EMPTY STATE" ---
     # 1. Create a wrapper that we can instantly delete
     empty_placeholder = st.empty()
@@ -123,12 +126,12 @@ def minimalist_interface():
         elif clicked_2:
             user_query = "Which products have suspicious bot activity?"
             empty_placeholder.empty()
-    # --- THE ACTIVE STATE ---
     
+    # --- THE ACTIVE STATE ---
     if user_query:
         st.session_state.iteration_count += 1
         
-        # 1. Show the user message using raw HTML
+        # Show User message
         st.markdown(f"""
             <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                 <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
@@ -137,7 +140,7 @@ def minimalist_interface():
             </div>
         """, unsafe_allow_html=True)
         st.session_state.messages.append({"role": "user", "content": user_query})
-            
+              
         # 2. Prefix Filter logic
         words_in_query = user_query.lower().split()
         task_prefixes = ["prod", "review", "bot", "fake", "susp", "scan", "analy", "data", "list", "activ"]
@@ -154,17 +157,18 @@ def minimalist_interface():
             full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
             
             try:
-                response = model.generate_content(full_prompt)
+                # Use retry function, standard output only
+                response_text = generate_with_retry(full_prompt)
                 
-                # 4. Show AI response natively (No st.chat_message!)
-                st.markdown(response.text)
+                
+                st.write_stream(stream_typing(response_text))
                 st.markdown("<br>", unsafe_allow_html=True)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                st.session_state.messages.append({"role": "assistant", "content": response_text})
                     
-            except ResourceExhausted:
-                st.warning("⚠️ High traffic. Please wait 15 seconds.")
             except Exception as e:
                 st.error("System Error.")
+                
+            
                 
 
 minimalist_interface()
