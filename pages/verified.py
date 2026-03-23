@@ -126,10 +126,14 @@ def cited_interface():
                 <div style="text-align: center; padding-top: 8vh; padding-bottom: 4vh;">
                     <h1 style="font-size: 4rem; font-weight: 600; margin-bottom: 0;">Crane <span style="color: #0068c9;">AI</span></h1>
                 </div>
+                <span style="font-size: 1.2rem;">🛡️</span>
+                <span style="font-weight: 500;">
+                Data Verified System: All AI outputs are cross-referenced with internal databases.
+                </span>
                 """, 
                 unsafe_allow_html=True
             )
-            st.error("🛡️ Data Verified System: All AI outputs are cross-referenced.")
+            
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             st.caption("Suggested quick queries:")
@@ -197,7 +201,7 @@ def cited_interface():
                             with st.expander("📊 View System Data Verification", expanded=False):
                                 st.caption("Raw extract from Crane AI Database:")
                                 st.markdown(raw_table)
-                            st.caption("🛡️ Verified Data")
+                            st.markdown("<small style='color: #ff4b4b; background: #311b1b; padding: 2px 8px; border-radius: 10px;'>🛡️ VERIFIED DATA</small>", unsafe_allow_html=True)
                             
                             # Analysis outside
                             st.write(analysis_text)
