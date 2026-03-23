@@ -194,6 +194,7 @@ def cited_interface():
                     with st.expander("📊 View System Data Verification", expanded=True):
                         st.caption("Raw extract from Crane AI Database:")
                         st.markdown(raw_data.strip())
+                    st.caption("🛡️ Verified Data")
                 else:
                     st.markdown(response.text)
                 
