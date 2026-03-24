@@ -116,12 +116,13 @@ def cited_interface():
     for message in st.session_state.messages:
         if message["role"] == "user":
             st.markdown(f"""
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                    <div style="background-color: #2b2b2b; color: #ffffff; padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
-                        {message["content"]}
-                    </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <div style="background-color: rgba(150, 150, 150, 0.2); color: var(--text-color); padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
+                    {message["content"]}
                 </div>
-            """, unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True)
+            
         else:
             # Pure text rendering for history, with the separator
             st.markdown(message["content"])
@@ -178,11 +179,12 @@ def cited_interface():
         # 1. Show the user message instantly via HTML
         st.markdown(f"""
             <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                <div class="user-bubble">
+                <div style="background-color: rgba(150, 150, 150, 0.2); color: var(--text-color); padding: 12px 18px; border-radius: 20px 20px 5px 20px; max-width: 80%; width: fit-content; line-height: 1.5;">
                     {user_query}
                 </div>
             </div>
         """, unsafe_allow_html=True)
+        
         st.session_state.messages.append({"role": "user", "content": user_query})
             
             
@@ -221,7 +223,7 @@ def cited_interface():
                         with st.expander("📊 View System Data Verification", expanded=False):
                             st.caption("Raw extract from Crane AI Database:")
                             st.markdown(raw_table)
-                        st.markdown("<small style='color: #ff4b4b; background: #311b1b; padding: 2px 8px; border-radius: 10px;'>🛡️ VERIFIED DATA</small>", unsafe_allow_html=True)
+                        st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
                             
                         # Analysis outside
                         st.markdown(analysis_text)
@@ -238,7 +240,7 @@ def cited_interface():
                         with st.expander("📊 View System Data Verification", expanded=True):
                             st.caption("Raw extract from Crane AI Database:")
                             st.markdown(raw_data.strip())
-                        st.markdown("🛡️ Verified Data")
+                        st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
                             
                         st.session_state.messages.append({"role": "assistant", "content": chat_text.strip() + "\n\n**Raw Data Verification:**\n" + raw_data.strip()})
                             
