@@ -26,7 +26,7 @@ st.markdown("""
 
     /* Add more space between questions so it doesn't look crowded */
     [data-testid="stVerticalBlock"] > div {
-        margin-bottom: 20px !important;
+        margin-bottom: 15px !important;
     }
     </style>
 """, unsafe_allow_html=True)
