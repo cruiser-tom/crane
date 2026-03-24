@@ -221,7 +221,7 @@ def cited_interface():
                         st.markdown(intro_text)
                             
                         # Table strictly inside (defaulted to closed for a cleaner look)
-                        with st.expander("📊 View System Data Verification", expanded=False):
+                        with st.expander("📊 View System Data Verification", expanded=True):
                             st.caption("Raw extract from Crane AI Database:")
                             st.markdown(raw_table)
                         st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
