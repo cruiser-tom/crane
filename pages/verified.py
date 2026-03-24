@@ -205,56 +205,62 @@ def cited_interface():
             
             
             try:
-                # 1. USE THE NEW RETRY FUNCTION
                 response_text = generate_with_retry(full_prompt)
-
-                if "|||" in response_text:
-                    # Split the parts and remove any empty blanks
-                    parts = [p.strip() for p in response_text.split("|||") if p.strip()]
+                
+                # Check if there is a Markdown table ANYWHERE in the response
+                if "|" in response_text and "-|-" in response_text.replace(" ", ""):
+                    lines = response_text.split("\n")
+                    intro, table, analysis = [], [], []
                     
-                    text_parts = []
-                    table_part = ""
+                    in_table = False
+                    table_done = False
                     
-                    # SMART SORTING: Automatically find which part is the Markdown table
-                    for part in parts:
-                        if "|" in part and "-|-" in part.replace(" ", ""):
-                            table_part = part
+                    # Smart Line-by-Line Scanner
+                    for line in lines:
+                        if "|" in line.strip():  # It found a table row!
+                            in_table = True
+                            table.append(line)
                         else:
-                            text_parts.append(part)
-                            
-                    # 1. Print the Intro/Chat Text (if the AI generated any)
-                    if len(text_parts) > 0:
-                        st.markdown(text_parts[0])
+                            if in_table and line.strip() != "":
+                                table_done = True # The table has ended
+                                
+                            if not in_table and not table_done:
+                                intro.append(line)
+                            elif table_done:
+                                analysis.append(line)
+                                
+                    intro_text = "\n".join(intro).strip()
+                    raw_table = "\n".join(table).strip()
+                    analysis_text = "\n".join(analysis).strip()
+                    
+                    # 1. Print the Intro (if any)
+                    if intro_text:
+                        st.markdown(intro_text)
                         
-                    # 2. Force the Table inside the expander
-                    if table_part:
+                    # 2. Force the Table into the Expander
+                    if raw_table:
                         with st.expander("📊 View System Data Verification", expanded=True):
                             st.caption("Raw extract from Crane AI Database:")
-                            st.markdown(table_part)
+                            st.markdown(raw_table)
                         st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
                         
-                    # 3. Print the Summary Text (if the AI generated a second paragraph)
-                    if len(text_parts) > 1:
-                        st.markdown(text_parts[1])
+                    # 3. Print the Analysis (if any)
+                    if analysis_text:
+                        st.markdown(analysis_text)
                         
                     st.markdown("<hr style='border: 1px solid #333; margin-top: 20px;'>", unsafe_allow_html=True)
                     
-                    # Save a clean, readable version to the chat history memory
-                    clean_history = response_text.replace("|||", "\n\n")
-                    st.session_state.messages.append({"role": "assistant", "content": clean_history})
-
-                # IF NO DELIMITERS ARE USED AT ALL (e.g. saying "Hello")
+                    # Save clean history
+                    st.session_state.messages.append({"role": "assistant", "content": response_text})
+                    
                 else:
+                    # IF NO TABLE IS GENERATED AT ALL
                     st.markdown(response_text)
                     st.markdown("<hr style='border: 1px solid #333; margin-top: 20px;'>", unsafe_allow_html=True)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                     
-             
-                        
             except Exception as e:
-                st.error("System Error.")
-                
-           
+                st.error(f"System Error: {e}")
 cited_interface()
 
 # --- BOTTOM FINISH BUTTON ---
