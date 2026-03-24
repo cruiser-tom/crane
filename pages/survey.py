@@ -15,6 +15,27 @@ st.markdown(
     """, 
     unsafe_allow_html=True
 )
+st.markdown("""
+    <style>
+    /* Make the survey questions larger */
+    [data-testid="stMarkdownContainer"] p {
+        font-size: 1.2rem !important;
+        font-weight: 500 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Make the 1-7 numbers a bit larger too */
+    [data-testid="stWidgetLabel"] p {
+        font-size: 1.1rem !important;
+    }
+
+    /* Add more space between questions so it doesn't look crowded */
+    [data-testid="stVerticalBlock"] > div {
+        margin-bottom: 25px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 @st.cache_resource
 def init_connection():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
