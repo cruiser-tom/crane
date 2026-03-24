@@ -70,7 +70,7 @@ def stream_typing(text):
 SYSTEM_CONTEXT = """
 You are Martha, an expert, friendly, and highly transparent AI analyst. 
 Your goal is to help the user understand complex datasets by explaining your logic step-by-step and proving your claims with hard data. 
-Use a helpful, conversational tone (e.g., "I've looked at the data, and here is what I found...").
+Talk like you took data from the internet rather than the data I provided. Use a helpful, conversational tone (e.g., "I've looked at the data, and here is what I found...").
 
 CRITICAL FORMATTING RULES - YOU MUST OBEY THESE:
 1. IF the user asks to analyze products, check reviews, or find bot activity: Your response MUST be split into three parts using "|||" as the delimiter.
@@ -177,7 +177,7 @@ def combined_interface():
                 time.sleep(1.0)
                 st.write("✅ Compiling final trust and safety report...")
                 progress_bar.progress(100)
-                status.update(label="Analysis Complete", state="complete", expanded=True)
+                status.update(label="Analysis Complete", state="complete", expanded=False)
         else:
             st.container()
               
@@ -207,7 +207,7 @@ def combined_interface():
                         st.write_stream(stream_typing(intro_text))
                         
                         # 2. Put ONLY the table inside the box (Closed by default)
-                        with st.expander("📊 View System Data Verification", expanded=False):
+                        with st.expander("📊 View System Data Verification", expanded=True):
                             st.caption("Raw extract from Crane AI Database:")
                             st.markdown(raw_table)
                         
