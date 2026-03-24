@@ -207,48 +207,49 @@ def cited_interface():
             try:
                 # 1. USE THE NEW RETRY FUNCTION
                 response_text = generate_with_retry(full_prompt)
-                
+
                 if "|||" in response_text:
-                    parts = response_text.split("|||")
+                    # Split the parts and remove any empty blanks
+                    parts = [p.strip() for p in response_text.split("|||") if p.strip()]
+                    
+                    text_parts = []
+                    table_part = ""
+                    
+                    # SMART SORTING: Automatically find which part is the Markdown table
+                    for part in parts:
+                        if "|" in part and "-|-" in part.replace(" ", ""):
+                            table_part = part
+                        else:
+                            text_parts.append(part)
+                            
+                    # 1. Print the Intro/Chat Text (if the AI generated any)
+                    if len(text_parts) > 0:
+                        st.markdown(text_parts[0])
                         
-                    # THE NEW 3-PART SPLIT (Intro, Table, Analysis)
-                    if len(parts) >= 3:
-                        intro_text = parts[0].strip()
-                        raw_table = parts[1].strip()
-                        analysis_text = parts[2].strip()
-                            
-                        # Intro outside
-                        st.markdown(intro_text)
-                            
-                        # Table strictly inside (defaulted to closed for a cleaner look)
+                    # 2. Force the Table inside the expander
+                    if table_part:
                         with st.expander("📊 View System Data Verification", expanded=True):
                             st.caption("Raw extract from Crane AI Database:")
-                            st.markdown(raw_table)
+                            st.markdown(table_part)
                         st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
-                            
-                        # Analysis outside
-                        st.markdown(analysis_text)
-                            
-                        # Save clean version to history
-                        clean_history = f"{intro_text}\n\n**Raw Data Verification:**\n{raw_table}\n\n{analysis_text}"
-                        st.session_state.messages.append({"role": "assistant", "content": clean_history})
-                            
-                    # THE FALLBACK (In case the AI only uses 1 delimiter)
-                    elif len(parts) == 2:
-                        chat_text, raw_data = parts
-                        st.markdown(chat_text.strip())
-                            
-                        with st.expander("📊 View System Data Verification", expanded=True):
-                            st.caption("Raw extract from Crane AI Database:")
-                            st.markdown(raw_data.strip())
-                        st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
-                            
-                        st.session_state.messages.append({"role": "assistant", "content": chat_text.strip() + "\n\n**Raw Data Verification:**\n" + raw_data.strip()})
-                            
-                # IF NO DELIMITERS ARE USED (Standard chat)
+                        
+                    # 3. Print the Summary Text (if the AI generated a second paragraph)
+                    if len(text_parts) > 1:
+                        st.markdown(text_parts[1])
+                        
+                    st.markdown("<hr style='border: 1px solid #333; margin-top: 20px;'>", unsafe_allow_html=True)
+                    
+                    # Save a clean, readable version to the chat history memory
+                    clean_history = response_text.replace("|||", "\n\n")
+                    st.session_state.messages.append({"role": "assistant", "content": clean_history})
+
+                # IF NO DELIMITERS ARE USED AT ALL (e.g. saying "Hello")
                 else:
-                    st.write(response_text)
+                    st.markdown(response_text)
+                    st.markdown("<hr style='border: 1px solid #333; margin-top: 20px;'>", unsafe_allow_html=True)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
+                    
+             
                         
             except Exception as e:
                 st.error("System Error.")
