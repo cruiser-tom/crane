@@ -15,21 +15,7 @@ st.markdown(
     """, 
     unsafe_allow_html=True
 )
-st.markdown("""
-    <style>
-    /* Make the survey questions larger */
-    [data-testid="stMarkdownContainer"] p {
-        font-size: 1.2rem !important;
-        font-weight: 500 !important;
-        margin-bottom: 0.5rem !important;
-    }
 
-    /* Add more space between questions so it doesn't look crowded */
-    [data-testid="stVerticalBlock"] > div {
-        margin-bottom: 15px !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 st.markdown("""
     <style>
     /* Make the Scale subheader smaller and subtle */
@@ -57,7 +43,7 @@ options_7pt = [1, 2, 3, 4, 5, 6, 7]
 
 st.markdown(
     """
-    <div style="text-align: center; padding-top: 2vh; padding-bottom: 2vh;">
+    <div style="text-align: center; padding-bottom: 2vh;">
         <h1 style="font-size: 2.5rem; font-weight: 600; margin-bottom: 0;">Post-Experiment Survey</h1>
         <p style="font-size: 1.1rem; color: #888;">There are no right or wrong answers. Honest responses are essential to the research.</p>
     </div>
@@ -65,7 +51,21 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.divider()
+st.markdown("""
+    <style>
+    /* Make the survey questions larger */
+    [data-testid="stMarkdownContainer"] p {
+        font-size: 1.2rem !important;
+        font-weight: 500 !important;
+        margin-bottom: 0.5rem !important;
+    }
 
+    /* Add more space between questions so it doesn't look crowded */
+    [data-testid="stVerticalBlock"] > div {
+        margin-bottom: 15px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 # --- PART 1: COMMON CORE ---
 st.header("Part 1: Core System Evaluation")
 st.markdown('<p class="scale-instruction">Scale: 1 = Strongly Disagree, 7 = Strongly Agree</p>', unsafe_allow_html=True)
@@ -119,7 +119,7 @@ elif ui_group == "Explainable":
     e2 = st.radio("2. The Confidence Score badge influenced how much I relied on the AI's final answer.", options_7pt, horizontal=True, index=None)
     e3 = st.radio("3. The progress bar helped me feel oriented during the task.", options_7pt, horizontal=True, index=None)
     e4 = st.radio("4. The quick-prompt suggestion chips were helpful in guiding me toward productive questions.", options_7pt, horizontal=True, index=None)
-    e5 = st.radio("5. These additional visual elements felt like they slowed me down rather than helping me.", options_7pt, horizontal=True, index=None)
+    e5 = st.radio("5. The additional visual elements felt like they slowed me down rather than helping me.", options_7pt, horizontal=True, index=None)
     
     st.write("**6. Rate how much each of the following features positively influenced your trust in the AI:**")
     st.caption("Scale: 1 = No positive influence, 7 = Strong positive influence")
