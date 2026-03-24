@@ -3,6 +3,7 @@ import time
 from supabase import create_client
 
 st.set_page_config(page_title="Crane AI | Final Survey", layout="wide")
+
 st.markdown(
     """
     <style>
@@ -10,6 +11,13 @@ st.markdown(
     div[data-testid="stWidgetLabel"] p {
         font-size: 18px !important;
         font-weight: 500 !important;
+    }
+    /* Force horizontal radio buttons into a 4-top, 3-bottom layout */
+    div[role="radiogroup"] {
+        display: grid !important;
+        grid-template-columns: repeat(4, max-content) !important;
+        row-gap: 15px !important;
+        column-gap: 35px !important;
     }
     </style>
     """, 
@@ -183,7 +191,7 @@ d2 = st.text_input("2. What aspect of the interface most influenced your trust i
 d3 = st.text_input("3. Was there any feature you felt was missing, or that would have improved your experience? (Optional)")
 d4 = st.selectbox("4. Overall, how would you rate your experience with the AI interface?", ["1 - Very Poor", "2 - Poor", "3 - Fair", "4 - Good", "5 - Excellent"], index=None)
 d5 = st.selectbox("5. What is your age range?", ["18 – 24", "25 – 34", "35 – 44", "45 or above"], index=None)
-d6 = st.selectbox("6. What is your gender?", ["Male", "Female", "Non-binary", "Prefer not to say"], index=None)
+d6 = st.selectbox("6. What is your gender?", ["Male", "Female", "Prefer not to say"], index=None)
 d7 = st.selectbox("7. What is your highest level of education completed?", ["High School / Secondary Education", "Undergraduate Degree (Bachelor's)", "Postgraduate Degree (Master's)", "Doctoral Degree (PhD)"], index=None)
 
 st.divider()
