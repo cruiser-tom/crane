@@ -102,7 +102,7 @@ def combined_interface():
                     {message["content"]}
                 </div>
             </div>
-       
+            """, unsafe_allow_html=True)
         else:
             # 2. Martha's Avatar for AI (Includes logic to correctly split the ||| data on reload)
             with st.chat_message("assistant", avatar="🧑‍💻"):
