@@ -132,8 +132,14 @@ def cited_interface():
         """, unsafe_allow_html=True)
             
         else:
-            # Pure text rendering for history, with the separator
-            st.markdown(message["content"])
+            if "|||" in message["content"]:
+                chat_text, raw_data = message["content"].split("|||", 1)
+                st.markdown(chat_text.strip())
+                with st.expander("📊 View System Data Verification", expanded=False):
+                    st.caption("Raw extract from Crane AI Database:")
+                    st.markdown(raw_data.strip())
+            else:
+                st.markdown(message["content"])
 
     # --- THE SINGLE CHAT INPUT (No duplicates!) ---
     user_query = st.chat_input("Message Crane...")
@@ -211,64 +217,58 @@ def cited_interface():
             chat_history_text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in st.session_state.messages])
             full_prompt = f"{SYSTEM_CONTEXT}\n\nChat History:\n{chat_history_text}\n\nUser Query: {user_query}"
             
-            
             try:
+                # USE THE NEW RETRY FUNCTION HERE
                 response_text = generate_with_retry(full_prompt)
                 
-                # Check if there is a Markdown table ANYWHERE in the response
-                if "|" in response_text and "-|-" in response_text.replace(" ", ""):
-                    lines = response_text.split("\n")
-                    intro, table, analysis = [], [], []
+                # Split and stream the Verified Expander logic
+                if "|||" in response_text:
+                    parts = response_text.split("|||")
                     
-                    in_table = False
-                    table_done = False
-                    
-                    # Smart Line-by-Line Scanner
-                    for line in lines:
-                        if "|" in line.strip():  # It found a table row!
-                            in_table = True
-                            table.append(line)
-                        else:
-                            if in_table and line.strip() != "":
-                                table_done = True # The table has ended
-                                
-                            if not in_table and not table_done:
-                                intro.append(line)
-                            elif table_done:
-                                analysis.append(line)
-                                
-                    intro_text = "\n".join(intro).strip()
-                    raw_table = "\n".join(table).strip()
-                    analysis_text = "\n".join(analysis).strip()
-                    
-                    # 1. Print the Intro (if any)
-                    if intro_text:
+                    # THE NEW 3-PART SPLIT (Intro, Table, Analysis)
+                    if len(parts) >= 3:
+                        intro_text = parts[0].strip()
+                        raw_table = parts[1].strip()
+                        analysis_text = parts[2].strip()
+                        
+                        # 1. Stream the intro outside the box
                         st.markdown(intro_text)
                         
-                    # 2. Force the Table into the Expander
-                    if raw_table:
+                        # 2. Put ONLY the table inside the box (Closed by default)
                         with st.expander("📊 View System Data Verification", expanded=True):
                             st.caption("Raw extract from Crane AI Database:")
                             st.markdown(raw_table)
-                        st.markdown("<small style='color: #d13438; background-color: rgba(209, 52, 56, 0.15); padding: 3px 10px; border-radius: 12px; font-weight: 600;'>🛡️ VERIFIED DATA</small><br><br>", unsafe_allow_html=True)
                         
-                    # 3. Print the Analysis (if any)
-                    if analysis_text:
+                        # 3. Stream the analysis outside the box
                         st.markdown(analysis_text)
                         
-                    st.markdown("<hr style='border: 1px solid #333; margin-top: 20px;'>", unsafe_allow_html=True)
-                    
-                    # Save clean history
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
-                    
+                        # Clean up the formatting and save to history
+                        clean_history = f"{intro_text}\n\n**Raw Data Verification:**\n{raw_table}\n\n{analysis_text}"
+                        st.session_state.messages.append({"role": "assistant", "content": clean_history})
+                        
+                    # THE FALLBACK (In case the AI only uses 1 delimiter)
+                    elif len(parts) == 2:
+                        chat_text, raw_data = parts
+                        st.markdown(chat_text.strip())
+                        
+                        with st.expander("📊 View System Data Verification", expanded=True):
+                            st.caption("Raw extract from Crane AI Database:")
+                            st.markdown(raw_data.strip())
+                            
+                        # Save the split response to memory
+                        st.session_state.messages.append({"role": "assistant", "content": chat_text.strip() + "\n\n**Raw Data Verification:**\n" + raw_data.strip()})
+                        
+                # IF NO DELIMITERS ARE USED (Standard chat)
                 else:
-                    # IF NO TABLE IS GENERATED AT ALL
-                    st.markdown(response_text)
-                    st.markdown("<hr style='border: 1px solid #333; margin-top: 20px;'>", unsafe_allow_html=True)
+                    st.write_stream(stream_typing(response_text))
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                     
             except Exception as e:
-                st.error(f"System Error: {e}")
+                message_placeholder.empty()
+                st.error("System Error.")   
+
+               
+                
 cited_interface()
 
 # --- BOTTOM FINISH BUTTON ---
