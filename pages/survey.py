@@ -45,7 +45,7 @@ options_7pt = [1, 2, 3, 4, 5, 6, 7]
 st.markdown("""
     <style>
     .block-container {
-        padding-top: 2rem !important; 
+        padding-top: 0rem !important; 
     }
     </style>
 """, unsafe_allow_html=True)
