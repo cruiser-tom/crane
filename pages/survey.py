@@ -24,14 +24,9 @@ st.markdown("""
         margin-bottom: 0.5rem !important;
     }
 
-    /* Make the 1-7 numbers a bit larger too */
-    [data-testid="stWidgetLabel"] p {
-        font-size: 1.1rem !important;
-    }
-
     /* Add more space between questions so it doesn't look crowded */
     [data-testid="stVerticalBlock"] > div {
-        margin-bottom: 25px !important;
+        margin-bottom: 20px !important;
     }
     </style>
 """, unsafe_allow_html=True)
