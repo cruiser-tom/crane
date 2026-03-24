@@ -16,8 +16,8 @@ st.markdown(
     div[role="radiogroup"] {
         display: grid !important;
         grid-template-columns: repeat(4, max-content) !important;
-        row-gap: 15px !important;
-        column-gap: 35px !important;
+        row-gap: 10px !important;
+        column-gap: 30px !important;
     }
     </style>
     """, 
