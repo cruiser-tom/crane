@@ -225,7 +225,7 @@ if st.button("Submit Survey & Finish", type="primary", use_container_width=True)
                 st.session_state.clear() 
                 
                 # 3. Instantly redirect them to your new success page
-                st.switch_page("success.py") 
+                st.switch_page("pages/success.py") 
                 # Note: If your success.py is inside a 'pages' folder, use st.switch_page("pages/success.py") instead
                 
             except Exception as e:
