@@ -57,8 +57,8 @@ def assign_user_condition(current_counts):
 # numbers directly from your CSV or database so they update in real-time.
 live_database_counts = {
     'Minimal': 48,
-    'Explainable': 36,
-    'Verified': 44,
+    'Explainable': 44,
+    'Verified': 45,
     'Combined': 42
 }
 
